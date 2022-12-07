@@ -10,12 +10,12 @@ RED = (255, 0,  0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 
-level = [
-    0, 0, 0, 0, 1, 0,
-    0, 0, 1, 0, 0, 0,
-    0, 0, 0, 3, 1, 0,
-    0, 3, 0, 0, 0, 0,
-    1, 0, 1, 0, 0, 0
+map = [
+    [0, 0, 0, 0, 1, 0],
+    [0, 0, 1, 0, 0, 0],
+    [0, 0, 0, 3, 1, 0],
+    [0, 3, 0, 0, 0, 0],
+    [1, 0, 1, 0, 0, 0]
 ]
 
 pygame.display.set_caption("The pirate of The Seven Seas")
@@ -25,53 +25,38 @@ img1 = pygame.transform.scale(pygame.image.load(
 img2 = pygame.image.load(os.path.join("Group 1.png"))  # Hinh anh
 
 
-global vtToix, vtToiy
-vtToix = 0
-vtToiy = 0
-
-
-rects = []
-for x in range(5):
-    for y in range(6):
-        rects.append(pygame.Rect(10 + y * 90, x *
-                     90, OB_WIDTH, OB_HEIGHT))
-
-[rects[i:i+6] for i in range(0, len(rects), 6)]
+rects = [[0]*50 for i in range(0, 50)]
+for y in range(5):
+    for x in range(6):
+        rects[y][x] = (pygame.Rect(10 + x * 90, y * 90, OB_WIDTH, OB_HEIGHT))
 
 
 def draw_win(ob1, ob2, a=(0, 0)):
-    WIN.fill((255, 255, 255))
-
-    WIN.blit(img2, (ob2.x, ob2.y))
-    # pygame.draw.rect(WIN, RED, sss)
-
-    # sss.x += 1
+    WIN.fill((255, 255, 255))  # Lam trang nguyen man hinh
 
     dem = 0
+    for y in range(0, 5):
+        for x in range(0, 6):
+            if (map[y][x] == 0):  # To o 0 Bien
+                pygame.draw.rect(WIN, BLUE, rects[y][x])
 
-    for i in rects:
-        print(dem)
-        if (level[dem] == 0):
-            pygame.draw.rect(WIN, BLUE, i)
-        if (level[dem] == 1):
-            pygame.draw.rect(WIN, RED, i)
-        if (level[dem] == 3):
-            pygame.draw.rect(WIN, GREEN, i)
-        if (dem == select):
-            print("click")
-            cord = (i.x + (100-80)/4, i.y + (100-80)/4)
-            # pygame.draw.rect(WIN, GREEN, i)
-            pygame.draw.rect(WIN, RED, i)
-            WIN.blit(img1, cord)
+            if (map[y][x] == 1):  # To o 1 Cuop bien
+                pygame.draw.rect(WIN, RED, rects[y][x])
 
-        if (i.collidepoint(pygame.mouse.get_pos())):
-            cord = (i.x + (100-80)/4, i.y + (100-80)/4)
-            # pygame.draw.rect(WIN, GREEN, i)
-            pygame.draw.rect(WIN, RED, i, 4)
+            if (map[y][x] == 3):  # To o 3 Dao
+                pygame.draw.rect(WIN, GREEN, rects[y][x])
 
-        dem += 1
+            # To DO roi them hinh o duoc chon
+            if (dem == select and map[y][x] != 1):
+                cord = (rects[y][x].x + (100-80)/4, rects[y][x].y + (100-80)/4)
+                pygame.draw.rect(WIN, RED, rects[y][x])
+                WIN.blit(img1, rects[y][x])
 
-    # WIN.blit(img1, (a.x, a.y))
+            # To len vien DO o co chuot hover
+            if (rects[y][x].collidepoint(pygame.mouse.get_pos())):
+                pygame.draw.rect(WIN, RED, rects[y][x], 4)
+
+            dem += 1
 
     pygame.display.update()
 
@@ -114,26 +99,20 @@ def main():
                 chayGame = False
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
-                    global vtToix, vtToiy
-                    vtToix, vtToiy = event.pos
+
                     vt = event.pos
-                    # print(vt)
 
-                    select = -1
                     dem = 0
-                    for i in rects:
-                        if i.collidepoint(vt):
-                            print("clicked aaa at", dem)
-                            select = dem
-                        dem += 1
+                    for y in range(0, 5):
+                        for x in range(0, 6):
 
-        vec = pygame.math.Vector2
-        a = vec(1, 1)
-        b = vec(vtToix, vtToiy)
+                            if rects[y][x].collidepoint(vt) and map[y][x] != 1:
+                                print("clicked aaa at", dem)
+                                select = dem
 
-        a = FollowMe(b, a)
+                            dem += 1
 
-        draw_win(object1, object2, a)
+        draw_win(object1, object2)
 
     pygame.quit()
 
