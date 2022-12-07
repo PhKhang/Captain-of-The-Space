@@ -31,6 +31,11 @@ for y in range(5):
         rects[y][x] = (pygame.Rect(10 + x * 90, y * 90, OB_WIDTH, OB_HEIGHT))
 
 
+global diToiX, diToiY
+diToiX = 0
+diToiY = 0
+
+
 def draw_win():
     WIN.fill((255, 255, 255))  # Lam trang nguyen man hinh
 
@@ -40,20 +45,20 @@ def draw_win():
 
             # To o 0 Bien
             if (map[y][x] == 0):
-                # To moi VUNG HINH VUONG mau xanh
-                pygame.draw.rect(WIN, BLUE, rects[y][x])
+                pygame.draw.rect(WIN, BLUE, rects[y][x])  # To XANH
 
             # To o 1 Cuop bien
             if (map[y][x] == 1):
-                pygame.draw.rect(WIN, RED, rects[y][x])
+                pygame.draw.rect(WIN, RED, rects[y][x])  # To DO
 
             # To o 3 Dao
             if (map[y][x] == 3):
-                pygame.draw.rect(WIN, GREEN, rects[y][x])
+                pygame.draw.rect(WIN, GREEN, rects[y][x])  # To XANH LA
 
             # To DO roi them hinh o duoc chon
-            if (dem == select and map[y][x] != 1):
-                cord = (rects[y][x].x + (100-80)/4, rects[y][x].y + (100-80)/4)
+            if ((x == diToiX and y == diToiY) and (map[y][x] != 1)):
+                toaDoDatHinh = (rects[y][x].x + (100-80)/4,
+                                rects[y][x].y + (100-80)/4)
                 pygame.draw.rect(WIN, RED, rects[y][x])
                 WIN.blit(img1, rects[y][x])
 
@@ -72,9 +77,6 @@ def main():
 
     clock = pygame.time.Clock()
 
-    object1 = pygame.Rect(700, 300, OB_WIDTH, OB_HEIGHT)
-    object2 = pygame.Rect(100, 300, OB_WIDTH, OB_HEIGHT)
-
     chayGame = True
     while chayGame:
         clock.tick(FPS)
@@ -83,19 +85,19 @@ def main():
             if event.type == pygame.QUIT:
                 chayGame = False
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1:
+                dem = 0
+                for y in range(0, 5):
+                    for x in range(0, 6):
 
-                    vt = event.pos
+                        if rects[y][x].collidepoint(event.pos) and map[y][x] != 1:
+                            print("clicked aaa at", dem)
+                            select = dem
+                            global diToiX, diToiY  # Dung bien global da khai bao o tren
+                            diToiX = x
+                            diToiY = y
+                            print(diToiX, diToiY)
 
-                    dem = 0
-                    for y in range(0, 5):
-                        for x in range(0, 6):
-
-                            if rects[y][x].collidepoint(vt) and map[y][x] != 1:
-                                print("clicked aaa at", dem)
-                                select = dem
-
-                            dem += 1
+                        dem += 1
 
         draw_win()
 
