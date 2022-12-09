@@ -42,6 +42,8 @@ hienTaiY = 0
 global x, y  # Gia tri can thay doi o truc x, truc y
 x = 0
 y = 0
+global denLuotThuyen
+denLuotThuyen = 0
 
 
 def draw_window():
@@ -103,7 +105,6 @@ def getKeyBoardInput(events):
     down_pressed = False
 
     for event in events:
-        print('key pressed')
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RIGHT:
                 right_pressed = True
@@ -167,7 +168,7 @@ def isInMap(x, y):
 
 # Di chuyen <replacementIcon> den vi tri moi trong mang map[][]
 def move(hienTaiX, hienTaiY, thayDoiX, thayDoiY, replacementIcon):
-    global x, y
+    global x, y, denLuotThuyen
     if isInMap(hienTaiX + thayDoiX, hienTaiY + thayDoiY) and map[hienTaiY + thayDoiY][hienTaiX + thayDoiX] != '!' and map[hienTaiY + thayDoiY][hienTaiX + thayDoiX] != 3:
         if map[hienTaiY][hienTaiX] == 0 or map[hienTaiY][hienTaiX] == '🛶':
             map[hienTaiY][hienTaiX] = 0
@@ -185,24 +186,33 @@ def move(hienTaiX, hienTaiY, thayDoiX, thayDoiY, replacementIcon):
         x = 0
         y = 0
 
+    if replacementIcon == '🛶' and (x != 0 or y != 0):
+        denLuotThuyen = 1
+
 
 def enemyTurn(hienTaiX, hienTaiY):
-    thayDoiX = 0
-    thayDoiY = 0
-    for y in range(0, HEIGHT):
-        for x in range(0, WIDTH):
-            if map[y][x] == 1:
-                if x < hienTaiX:
-                    thayDoiX = 1
-                if x > hienTaiX:
-                    thayDoiX = -1
+    global denLuotThuyen
+    print('\n'.join(['\t'.join([str(cell) for cell in row])
+                     for row in map]))
+    if denLuotThuyen:
+        print(len(map), len(map[0]))
+        thayDoiX = 0
+        thayDoiY = 0
+        denLuotThuyen = 0
+        for y in range(0, HEIGHT-2):
+            for x in range(0, WIDTH-2):
+                if map[y][x] == 1:
+                    if x < hienTaiX:
+                        thayDoiX = 1
+                    if x > hienTaiX:
+                        thayDoiX = -1
 
-                if y < hienTaiY:
-                    thayDoiY = 1
-                if y > hienTaiY:
-                    thayDoiY = -1
+                    if y < hienTaiY:
+                        thayDoiY = 1
+                    if y > hienTaiY:
+                        thayDoiY = -1
 
-                move(x, y, thayDoiX, thayDoiY, 1)
+                    move(x, y, thayDoiX, thayDoiY, 1)
 
 
 def main():
@@ -225,8 +235,8 @@ def main():
         hienTaiX += x
         hienTaiY += y
 
-        print('\n'.join(['\t'.join([str(cell) for cell in row])
-              for row in map]))
+        enemyTurn(hienTaiX, hienTaiY)
+
         draw_window()
 
     pygame.quit()
