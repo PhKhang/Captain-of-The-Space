@@ -236,8 +236,6 @@ def main():
         hienTaiX += x
         hienTaiY += y
 
-        enemyTurn(hienTaiX, hienTaiY)
-
         draw_window()
 
     pygame.quit()
