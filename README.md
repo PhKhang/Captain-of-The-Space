@@ -6,4 +6,12 @@ This is an ongoing project so over time there will be screenshots to documents o
 Keyboard control, restricted area and block support:
 ![image](https://user-images.githubusercontent.com/84757707/206679753-ea9f8622-8993-4246-afae-521e726dc02b.png)
 
+## How to build and run the game
+### Prerequisites
+- Python, can be installed using Windows Store: https://www.microsoft.com/store/productId/9PJPW5LDXLZ5
+- Pip, can be installed using `python get-pip.py`
 
+### Dependencies
+Run `pip install pygame`
+### Run the game
+`python .\main.py`
