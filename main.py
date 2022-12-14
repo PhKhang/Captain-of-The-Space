@@ -12,12 +12,27 @@ BLUE = (0, 0, 255)
 CHOCO = (210, 105, 30)
 PINK = (255, 192, 203)
 
+mapSize = 11
+
+waterIcon = '~'
+shipIcon = 'X'
+enemyIcon = 'A'
+deathIcon = '#'
+obstacleIcon = '!'
+bulletIcon = '.'
+portalIcon = '@'  # icon game
+
+shipPosX = 6
+shipPosY = 9																									# vi tri ban dau cua tau
+
+shipStatus = 1
+
 map = [
-    [0, 0, 0, 0, 1, 0],
-    [0, 0, 1, 0, 0, 0],
-    [0, 0, 0, 3, 1, 0],
-    [0, 3, 0, 0, 0, 0],
-    [1, 0, 1, 0, 0, 0]
+    ['~', '~', '~', '~', 'A', '~'],
+    ['~', '~', 'A', '~', '~', '~'],
+    ['~', '~', '~', '!', 'A', '~'],
+    ['~', '!', '~', '~', '~', '~'],
+    ['A', '~', 'A', '~', '~', '~']
 ]
 
 MAP_WIDTH = 6
@@ -73,7 +88,7 @@ def draw_window():
                 toaDoDatHinh = (rects[y][x].x + (100-80)/4,
                                 rects[y][x].y + (100-80)/4)
                 pygame.draw.rect(WIN, RED, rects[y][x])
-                WIN.blit(img1, rects[y][x])
+                WIN.blit(img1, toaDoDatHinh)
 
             # To len vien DO o co chuot hover
             if (rects[y][x].collidepoint(pygame.mouse.get_pos())):
@@ -214,6 +229,20 @@ def enemyTurn(hienTaiX, hienTaiY):
                         thayDoiY = -1
 
                     move(x, y, thayDoiX, thayDoiY, 1)
+
+
+def initMap(ch):
+    for i in range(0, mapSize):
+        for j in range(0, mapSize):
+            map[i][j] = ch
+
+
+def updateMap():
+    for i in range(0, mapSize):
+        for j in range(0, mapSize):
+            print(map[i][j], end=" ")
+        print()
+        print()
 
 
 def main():
