@@ -27,13 +27,10 @@ shipPosY = 9																									# vi tri ban dau cua tau
 
 shipStatus = 1
 
-map = [
-    ['~', '~', '~', '~', 'A', '~'],
-    ['~', '~', 'A', '~', '~', '~'],
-    ['~', '~', '~', '!', 'A', '~'],
-    ['~', '!', '~', '~', '~', '~'],
-    ['A', '~', 'A', '~', '~', '~']
-]
+
+map = [[0]*50 for i in range(0, 50)]
+visited = [[0]*50 for i in range(0, 50)]
+global visitedNum
 
 MAP_WIDTH = 6
 MAP_HEIGHT = 5
@@ -112,7 +109,7 @@ def getMouseInput(event):
                     print("Clicked at", hienTaiY, hienTaiX)
 
 
-def getKeyBoardInput(events):
+def getKeyBoardInput():
     global x, y
 
     right_pressed = False
@@ -120,66 +117,60 @@ def getKeyBoardInput(events):
     up_pressed = False
     down_pressed = False
 
-    for event in events:
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_RIGHT:
-                right_pressed = True
-            if event.key == pygame.K_LEFT:
-                left_pressed = True
-            if event.key == pygame.K_UP:
-                up_pressed = True
-            if event.key == pygame.K_DOWN:
-                down_pressed = True
+    print("Your joystick :")
+    print("7 8 9")  # upper left  | up          | upper right
+    print("4 5 6")  # left        | fire cannon | right
+    print("1 2 3")  # bottom left | bottom      | bottom right
+    inputU = input("Nhap so")
+    print("Ipnut", type(inputU))
 
-    if left_pressed and up_pressed:  # TH nhan 7
+    if int(inputU) == 7:  # TH nhan 7
         x = -1
         y = -1
-        # print(7)
+        print("ban vua chon ", 7)
 
-    elif right_pressed and up_pressed:  # TH nhan 9
-        x = 1
-        y = 1
-        # print(9)
-
-    elif right_pressed and down_pressed:  # TH nhan 3
-        x = 1
-        y = 1
-        # print(3)
-
-    elif left_pressed and down_pressed:  # TH nhan 1
+    elif int(inputU) == 9:  # TH nhan 9
         x = -1
         y = 1
-        # print(1)
+        print("ban vua chon ", 9)
 
-    elif up_pressed:  # TH nhan 8
+    elif int(inputU) == 3:  # TH nhan 3
+        x = 1
+        y = 1
+        print("ban vua chon ", 3)
+
+    elif int(inputU) == 1:  # TH nhan 1
+        x = 1
+        y = -1
+        print("ban vua chon ", 1)
+
+    elif int(inputU) == 8:  # TH nhan 8
+        x = -1
+        y = 0
+        print("ban vua chon ", 8)
+
+    elif int(inputU) == 6:  # TH nhan 6
+        x = 0
+        y = 1
+        print("ban vua chon ", 6)
+
+    elif int(inputU) == 4:  # TH nhan 4
         x = 0
         y = -1
-        # print(8)
+        print("ban vua chon ", 4)
 
-    elif right_pressed:  # TH nhan 6
+    elif int(inputU) == 2:  # TH nhan 2
         x = 1
         y = 0
-        # print(6)
-
-    elif left_pressed:  # TH nhan 4
-        x = -1
-        y = 0
-        # print(4)
-
-    elif down_pressed:  # TH nhan 2
-        x = 0
-        y = 1
-        # print(2)
+        print("ban vua chon ", 2)
 
     else:
-        x = 0
-        y = 0
-        # print('none')
+        x = 100
+        print("ban vua chon ", 'none')
 
 
 def isInMap(x, y):
-    print(y, x, (0 <= x < MAP_WIDTH and 0 <= y < MAP_HEIGHT))
-    return (0 <= x < MAP_WIDTH and 0 <= y < MAP_HEIGHT)
+    return (0 <= x < mapSize and 0 <= y < mapSize)
 
 
 # Di chuyen <replacementIcon> den vi tri moi trong mang map[][]
@@ -232,8 +223,8 @@ def enemyTurn(hienTaiX, hienTaiY):
 
 
 def initMap(ch):
-    for i in range(0, mapSize):
-        for j in range(0, mapSize):
+    for i in range(0, mapSize - 1):
+        for j in range(0, mapSize - 1):
             map[i][j] = ch
 
 
@@ -245,7 +236,117 @@ def updateMap():
         print()
 
 
+def CheckWinCondition():
+    if (map[shipPosX][shipPosY] == deathIcon):
+        return -1
+
+    for i in range(0, mapSize):
+        for j in range(0, mapSize):
+            if (map[i][j] == enemyIcon):
+                return 0
+
+    return 1
+
+
+def playerTurn():
+    getKeyBoardInput()
+    global x, y, shipPosX, shipPosY
+    if isInMap(shipPosX + x, shipPosY + y):
+        map[shipPosX][shipPosY] = waterIcon
+        if (map[shipPosX + x][shipPosY + y] != waterIcon):
+            map[shipPosX + x][shipPosY + y] = deathIcon
+        else:
+            map[shipPosX + x][shipPosY + y] = shipIcon
+        shipPosX += x
+        shipPosY += y
+
+
+def enemyTurn():
+    global visited
+    global x, y
+    global visitedNum
+
+    visitedNum = 0
+
+    for i in range(0, mapSize-1):
+        for j in range(0, mapSize-1):
+            visited[i][j] = False
+
+    while (visitedNum < mapSize * mapSize):
+        for i in range(0, mapSize-1):
+            for j in range(0, mapSize-1):
+                if (visited[i][j] == False):
+                    visited[i][j] = True
+                    visitedNum += 1
+                    if (map[i][j] == enemyIcon):
+                        # so sanh vi tri dich tai(i, j) so voi tau cua minh de co huong di toi uu nhat
+                        if (i == shipPosX):
+                            x = 0
+                        elif (i < shipPosX):
+                            x = 1
+                        else:
+                            x = -1
+
+                        if (j == shipPosY):
+                            y = 0
+                        elif (j < shipPosY):
+                            y = 1
+                        else:
+                            y = -1
+
+                        enemyMove(i, j, x, y)
+
+
+# Di chuyen tu vi tri (PosX, PosY) sang vi tri (PosX + x, PosY + y)
+def enemyMove(posX, posY, x, y):
+    global visinum
+
+    # check xem vi tri di chuyen toi co vat can gi khong
+    if (map[posX + x][posY + y] != waterIcon):
+        if (map[posX + x][posY + y] == enemyIcon):
+            if (visited[posX + x][posY + y] == True):
+                map[posX][posY] = waterIcon
+                map[posX + x][posY + y] = deathIcon
+            else:
+                visited[posX][posY] = False
+                visitedNum -= 1
+        else:
+            map[posX][posY] = waterIcon
+            map[posX + x][posY + y] = deathIcon
+    else:
+        map[posX][posY] = waterIcon
+        map[posX + x][posY + y] = enemyIcon
+        if (visited[posX + x][posY + y] != True):
+            visited[posX + x][posY + y] = True
+            visitedNum += 1
+
+
 def main():
+    global map
+    initMap(waterIcon)
+
+    global shipPosX, shipPosY
+    print(shipPosX, shipPosY)
+    print(len(map))
+    map[shipPosX][shipPosY] = shipIcon
+
+    map[0][0] = portalIcon
+    map[0][10] = portalIcon
+    map[10][0] = portalIcon
+    map[10][10] = portalIcon
+
+    map[6][1] = enemyIcon
+    map[6][2] = enemyIcon
+    map[2][5] = enemyIcon
+    map[10][9] = enemyIcon
+    map[1][2] = enemyIcon
+
+    map[5][9] = obstacleIcon
+    map[1][9] = obstacleIcon
+    map[5][4] = obstacleIcon
+
+    win = False
+
     clock = pygame.time.Clock()
 
     global x, y, hienTaiX, hienTaiY
@@ -254,18 +355,24 @@ def main():
     while chayGame:
         clock.tick(FPS)
 
+        updateMap()
+
+        if (CheckWinCondition() == 1):
+            win = True
+            break
+        elif (CheckWinCondition() == -1):
+            win = False
+            break
+
         events = pygame.event.get()
         for event in events:
             if event.type == pygame.QUIT:
                 chayGame = False
             getMouseInput(event)
 
-        getKeyBoardInput(events)
-        move(hienTaiX, hienTaiY, x, y, '🛶')
-        hienTaiX += x
-        hienTaiY += y
+        playerTurn()
 
-        draw_window()
+        # draw_window()
 
     pygame.quit()
 
