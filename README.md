@@ -10,6 +10,8 @@ This is an ongoing project so over time there will be screenshots to documents o
 
 17/12: Removed arrow control but completely converted all c++ code to python, map still glitch out on some areas
 ![image](https://user-images.githubusercontent.com/84757707/208159085-813ac025-a64e-4233-bdc5-a7de14ce9584.png)
+Last update + 5 mins: It turns out that I was just dumb
+![image](https://user-images.githubusercontent.com/84757707/208160015-603ee1fb-fab9-42c5-ba2a-fb7eb054cb16.png)
 
 
 ## How to build and run the game
