@@ -1,15 +1,37 @@
 import time
-from os import system
 import random
-
-map = [[1, 34, 54, 64, 434, 34],
-       [1, 78, 48, 13, 0, 2]]
-
-a = 1112
+import pygame
+from os import system
+import os
 
 MAX = 100
-
 mapSize = 11
+
+# CONST for the pygame
+OBJ_WIDTH, OBJ_HEIGHT = 40, 40
+WIN = pygame.display.set_mode((900, 500), pygame.RESIZABLE)
+FPS = 5
+
+RED = (255, 0,  0)
+GREEN = (0, 255, 0)
+BLUE = (0, 0, 255)
+CHOCO = (210, 105, 30)
+PINK = (255, 192, 203)
+
+pygame.display.set_caption("The pirate of The Seven Seas")
+
+img1 = pygame.transform.scale(pygame.image.load(
+    os.path.join("pikachuOnDeskSqr.png")), (OBJ_HEIGHT, OBJ_HEIGHT))  # Hinh anh va thu nho thanh 80x80px
+
+# Tao mang that bu, moi phan tu la MOT VUNG HINH VUONG de tu do to mau, in hinh,... len
+rects = [[0]*50 for i in range(0, 50)]  # Tao mang trong
+for y in range(0, mapSize):  # Lap vao mang trong tren cac VUNG HINH VUONG
+    for x in range(0, mapSize):
+        rects[y][x] = (pygame.Rect(
+            10 + x * OBJ_HEIGHT, y * OBJ_HEIGHT, OBJ_WIDTH, OBJ_HEIGHT))
+
+
+# Variables for the game algo
 waterIcon = '~'
 shipIcon = 'X'
 enemyIcon = 'A'
@@ -30,6 +52,47 @@ shipStatus = 1																												# 1, 9 = / -> 1
 map = [['0']*MAX for i in range(0, MAX)]
 visited = [['0']*MAX for i in range(0, MAX)]
 visitedNum = 0
+
+
+def draw_window():
+    WIN.fill((255, 255, 255))  # Lam TRANG nguyen man hinh
+
+    dem = 0
+    for y in range(0, mapSize):
+        for x in range(0, mapSize):
+
+            # To o 0 Bien
+            if (map[x][y] == waterIcon):
+                pygame.draw.rect(WIN, BLUE, rects[x][y])  # To XANH
+
+            # To o 1 Cuop bien
+            if (map[x][y] == enemyIcon):
+                pygame.draw.rect(WIN, RED, rects[x][y])  # To DO
+
+            # To o 3 Dao
+            if (map[x][y] == obstacleIcon):
+                pygame.draw.rect(WIN, GREEN, rects[x][y])  # To XANH LA
+
+            if (map[x][y] == portalIcon):
+                pygame.draw.rect(WIN, PINK, rects[x][y])  # To HONG
+
+            if (map[x][y] == deathIcon):
+                pygame.draw.rect(WIN, CHOCO, rects[x][y])  # To NAU
+
+            # To DO roi them hinh o duoc chon
+            if ((x == shipPosX and y == shipPosY) and (map[x][y] != enemyIcon)):
+                toaDoDatHinh = (rects[x][y].x + (100-80)/4,
+                                rects[x][y].y + (100-80)/4)
+                pygame.draw.rect(WIN, RED, rects[x][y])
+                WIN.blit(img1, rects[x][y])
+
+            # To len vien DO o co chuot hover
+            if (rects[y][x].collidepoint(pygame.mouse.get_pos())):
+                pygame.draw.rect(WIN, RED, rects[y][x], 4)
+
+            dem += 1
+
+    pygame.display.update()
 
 
 def updateMap():
@@ -61,78 +124,82 @@ def CheckWinCondition():
     return 1
 
 
-def getKeyBoardInput():
+def getKeyBoardInput(events):
     x = y = None
 
     print("Your joystick :")
     print("7 8 9")  # upper left  | up          | upper right
     print("4 5 6")  # left        | fire cannon | right
     print("1 2 3")  # bottom left | bottom      | bottom right
-    inputU = input("Nhap so: ")
 
     global shipStatus
 
-    if int(inputU) == 7:  # TH nhan 7
-        x = -1
-        y = -1
-        shipStatus = 7
-        print("ban vua chon ", 7)
+    for event in events:
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_1 or event.key == pygame.K_KP1:
+                x = 1
+                y = -1
+                shipStatus = 1
+                print("ban vua chon ", 1)
 
-    elif int(inputU) == 9:  # TH nhan 9
-        x = -1
-        y = 1
-        shipStatus = 9
-        print("ban vua chon ", 9)
+            elif event.key == pygame.K_2 or event.key == pygame.K_KP2:
+                x = 1
+                y = 0
+                shipStatus = 2
+                print("ban vua chon ", 2)
 
-    elif int(inputU) == 3:  # TH nhan 3
-        x = 1
-        y = 1
-        shipStatus = 3
-        print("ban vua chon ", 3)
+            elif event.key == pygame.K_3 or event.key == pygame.K_KP3:
+                x = 1
+                y = 1
+                shipStatus = 3
+                print("ban vua chon ", 3)
 
-    elif int(inputU) == 1:  # TH nhan 1
-        x = 1
-        y = -1
-        shipStatus = 1
-        print("ban vua chon ", 1)
+            elif event.key == pygame.K_4 or event.key == pygame.K_KP4:
+                x = 0
+                y = -1
+                shipStatus = 4
+                print("ban vua chon ", 4)
 
-    elif int(inputU) == 8:  # TH nhan 8
-        x = -1
-        y = 0
-        shipStatus = 8
-        print("ban vua chon ", 8)
+            elif event.key == pygame.K_5 or event.key == pygame.K_KP5:
+                x = 100
+                print("ban vua chon ", 'none')
 
-    elif int(inputU) == 6:  # TH nhan 6
-        x = 0
-        y = 1
-        shipStatus = 6
-        print("ban vua chon ", 6)
+            elif event.key == pygame.K_6 or event.key == pygame.K_KP6:
+                x = 0
+                y = 1
+                shipStatus = 6
+                print("ban vua chon ", 6)
 
-    elif int(inputU) == 4:  # TH nhan 4
-        x = 0
-        y = -1
-        shipStatus = 4
-        print("ban vua chon ", 4)
+            elif event.key == pygame.K_7 or event.key == pygame.K_KP7:
+                x = -1
+                y = -1
+                shipStatus = 7
+                print("ban vua chon ", 7)
 
-    elif int(inputU) == 2:  # TH nhan 2
-        x = 1
-        y = 0
-        shipStatus = 2
-        print("ban vua chon ", 2)
+            elif event.key == pygame.K_8 or event.key == pygame.K_KP8:
+                x = -1
+                y = 0
+                shipStatus = 8
+                print("ban vua chon ", 8)
 
-    else:
-        x = 100
-        print("ban vua chon ", 'none')
+            elif event.key == pygame.K_9 or event.key == pygame.K_KP9:
+                x = -1
+                y = 1
+                shipStatus = 9
+                print("ban vua chon ", 9)
 
     return x, y
 
 
-def playerTurn():
+def playerTurn(events):
     x = y = None
-    x, y = getKeyBoardInput()
+    x, y = getKeyBoardInput(events)
     global shipPosX, shipPosY
 
     print(f'{x = }, {y = }, {shipStatus = }, {shipPosX = } , {shipPosY = }')
+    if x == None and y == None:
+        print("No input")
+        return 0
 
     if x == 100:
         fireCannon()
@@ -157,6 +224,9 @@ def playerTurn():
             shipPosX = tempx
             shipPosY = tempy
             map[shipPosX][shipPosY] = shipIcon
+
+    print("-------------------------------------------Co input: ", events)
+    return 1
 
 
 def fireCannon():
@@ -206,7 +276,7 @@ def bulletMove(x, y):
             map[bullet2X - x][bullet2Y - y] = bulletIcon
         bullet2X -= x
         bullet2Y -= y
-        system('cls')
+        # system('cls')
         updateMap()
         time.sleep(1)
     # clear the last bullet
@@ -217,6 +287,7 @@ def bulletMove(x, y):
 
 
 def enemyTurn():
+
     x = y = None
     global visitedNum, visited
     visitedNum = 0
@@ -297,9 +368,14 @@ def main():
 
     win = False
 
-    while True:
-        system('cls')
-        updateMap()
+    clock = pygame.time.Clock()
+    chayGame = True
+    while chayGame:
+        clock.tick(FPS)
+
+        # system('cls')
+        # updateMap()
+        draw_window()
 
         if CheckWinCondition() == 1:
             win = True
@@ -308,18 +384,28 @@ def main():
             win = False
             break
 
-        playerTurn()
+        events = pygame.event.get()
+        for event in events:
+            if event.type == pygame.QUIT:
+                chayGame = False
 
-        system('cls')
+        bao = playerTurn(events)
+
+        # system('cls')
         updateMap()
-        time.sleep(1)
+        draw_window()
+        # time.sleep(1)
 
-        enemyTurn()
+        if bao != 0:
+            print("ENEMY TURN")
+            enemyTurn()
 
     if win:
         print("You Win!!")
     else:
         print("ゲームオーバー")
+
+    pygame.quit()
 
 
 if __name__ == "__main__":
