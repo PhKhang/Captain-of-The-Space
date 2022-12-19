@@ -27,4 +27,4 @@ Last update + 5 mins: It turns out that I was just dumb
 ### Dependencies
 Run `pip install pygame`
 ### Run the game
-`python .\main.py`
+`python .\testing.py`
