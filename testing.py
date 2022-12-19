@@ -22,6 +22,8 @@ pygame.display.set_caption("The pirate of The Seven Seas")
 
 img1 = pygame.transform.scale(pygame.image.load(
     os.path.join("pikachuOnDeskSqr.png")), (OBJ_HEIGHT, OBJ_HEIGHT))  # Hinh anh va thu nho thanh 80x80px
+bullet = pygame.transform.scale(pygame.image.load(
+    os.path.join("bullet.png")), (OBJ_HEIGHT, OBJ_HEIGHT))  # Hinh anh va thu nho thanh 80x80px
 
 # Tao mang that bu, moi phan tu la MOT VUNG HINH VUONG de tu do to mau, in hinh,... len
 rects = [[0]*50 for i in range(0, 50)]  # Tao mang trong
@@ -79,6 +81,12 @@ def draw_window():
             if (map[x][y] == deathIcon):
                 pygame.draw.rect(WIN, CHOCO, rects[x][y])  # To NAU
 
+            if (map[x][y] == bulletIcon):
+                ptoaDoDatHinh = (rects[x][y].x + (100-80)/4,
+                                 rects[x][y].y + (100-80)/4)
+                pygame.draw.rect(WIN, BLUE, rects[x][y])
+                WIN.blit(bullet, rects[x][y])
+
             # To DO roi them hinh o duoc chon
             if ((x == shipPosX and y == shipPosY) and (map[x][y] != enemyIcon)):
                 toaDoDatHinh = (rects[x][y].x + (100-80)/4,
@@ -125,7 +133,7 @@ def CheckWinCondition():
 
 
 def getKeyBoardInput(events):
-    x = y = None
+    x = y = 0
 
     print("Your joystick :")
     print("7 8 9")  # upper left  | up          | upper right
@@ -167,37 +175,37 @@ def getKeyBoardInput(events):
             elif event.key == pygame.K_6 or event.key == pygame.K_KP6:
                 x = 0
                 y = 1
-                shipStatus = 6
+                shipStatus = 4
                 print("ban vua chon ", 6)
 
             elif event.key == pygame.K_7 or event.key == pygame.K_KP7:
                 x = -1
                 y = -1
-                shipStatus = 7
+                shipStatus = 3
                 print("ban vua chon ", 7)
 
             elif event.key == pygame.K_8 or event.key == pygame.K_KP8:
                 x = -1
                 y = 0
-                shipStatus = 8
+                shipStatus = 2
                 print("ban vua chon ", 8)
 
             elif event.key == pygame.K_9 or event.key == pygame.K_KP9:
                 x = -1
                 y = 1
-                shipStatus = 9
+                shipStatus = 1
                 print("ban vua chon ", 9)
 
     return x, y
 
 
 def playerTurn(events):
-    x = y = None
+    x = y = 0
     x, y = getKeyBoardInput(events)
     global shipPosX, shipPosY
 
     print(f'{x = }, {y = }, {shipStatus = }, {shipPosX = } , {shipPosY = }')
-    if x == None and y == None:
+    if x == 0 and y == 0:
         print("No input")
         return 0
 
@@ -230,7 +238,8 @@ def playerTurn(events):
 
 
 def fireCannon():
-    x = y = None
+    x = y = 0
+    global shipStatus
     match shipStatus:
         case 1:
             x = -1
@@ -277,8 +286,12 @@ def bulletMove(x, y):
         bullet2X -= x
         bullet2Y -= y
         # system('cls')
+        print("ban vien dan thu:", i, " tai: ",
+              bullet1X, bullet1Y, bullet2X, bullet2Y)
         updateMap()
+        draw_window()
         time.sleep(1)
+
     # clear the last bullet
     if (map[bullet1X][bullet1Y] != shipIcon and map[bullet1X][bullet1Y] != deathIcon):
         map[bullet1X][bullet1Y] = waterIcon
@@ -374,7 +387,7 @@ def main():
         clock.tick(FPS)
 
         # system('cls')
-        # updateMap()
+        updateMap()
         draw_window()
 
         if CheckWinCondition() == 1:
