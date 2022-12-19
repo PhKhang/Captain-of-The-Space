@@ -14,6 +14,11 @@ Last update + 5 mins: It turns out that I was just dumb
 ![image](https://user-images.githubusercontent.com/84757707/208160015-603ee1fb-fab9-42c5-ba2a-fb7eb054cb16.png)
 
 
+19/12: Fireable
+![image](https://user-images.githubusercontent.com/84757707/208334110-7c2227a9-33b6-4791-bdcd-d1c362c39e7e.png)
+
+
+
 ## How to build and run the game
 ### Prerequisites
 - Python, can be installed using Windows Store: https://www.microsoft.com/store/productId/9PJPW5LDXLZ5
