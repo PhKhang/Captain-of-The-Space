@@ -8,9 +8,9 @@ MAX = 100
 mapSize = 11
 
 # CONST for the pygame
-OBJ_WIDTH, OBJ_HEIGHT = 40, 40
-WIN = pygame.display.set_mode((900, 500), pygame.RESIZABLE)
-FPS = 5
+OBJ_WIDTH, OBJ_HEIGHT = 50, 50
+WIN = pygame.display.set_mode((900, 600), pygame.RESIZABLE)
+FPS = 60
 
 RED = (255, 0,  0)
 GREEN = (0, 255, 0)
@@ -20,17 +20,23 @@ PINK = (255, 192, 203)
 
 pygame.display.set_caption("The pirate of The Seven Seas")
 
+pygame.font.init()
+
 img1 = pygame.transform.scale(pygame.image.load(
     os.path.join("pikachuOnDeskSqr.png")), (OBJ_HEIGHT, OBJ_HEIGHT))  # Hinh anh va thu nho thanh 80x80px
 bullet = pygame.transform.scale(pygame.image.load(
     os.path.join("bullet.png")), (OBJ_HEIGHT, OBJ_HEIGHT))  # Hinh anh va thu nho thanh 80x80px
+votex = pygame.transform.scale(pygame.image.load(
+    "images/votex/01.gif"), (60, 60))
+obstacle = pygame.transform.scale(pygame.image.load(
+    "images/obstacle/neutron.gif"), (92, 92))
 
 # Tao mang that bu, moi phan tu la MOT VUNG HINH VUONG de tu do to mau, in hinh,... len
 rects = [[0]*50 for i in range(0, 50)]  # Tao mang trong
 for y in range(0, mapSize):  # Lap vao mang trong tren cac VUNG HINH VUONG
     for x in range(0, mapSize):
         rects[y][x] = (pygame.Rect(
-            10 + x * OBJ_HEIGHT, y * OBJ_HEIGHT, OBJ_WIDTH, OBJ_HEIGHT))
+            10 + x * OBJ_HEIGHT, 10 + y * OBJ_HEIGHT, OBJ_WIDTH, OBJ_HEIGHT))
 
 
 # Variables for the game algo
@@ -45,7 +51,8 @@ portalIcon = '@'  # icon game
 shipPosX = 6
 shipPosY = 9
 
-shipStatus = 1																												# 1, 9 = / -> 1
+shipStatus = 1
+# 1, 9 = / -> 1
 # 2, 8 = _  -> 2
 # 3, 7 = \  -> 3
 # 4, 6 = |  -> 4
@@ -56,16 +63,52 @@ visited = [['0']*MAX for i in range(0, MAX)]
 visitedNum = 0
 
 
+class Bg(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        self.sprites = []
+        self.sprites.append(pygame.transform.scale(pygame.image.load(
+            "images/background/frame_0_delay-0.5s.gif"), (550, 550)))
+        self.sprites.append(pygame.transform.scale(pygame.image.load(
+            "images/background/frame_1_delay-0.5s.gif"), (550, 550)))
+        self.sprites.append(pygame.transform.scale(pygame.image.load(
+            "images/background/frame_2_delay-0.5s.gif"), (550, 550)))
+        self.sprites.append(pygame.transform.scale(pygame.image.load(
+            "images/background/frame_3_delay-0.5s.gif"), (550, 550)))
+
+        self.index = 0
+
+        self.image = self.sprites[self.index]
+
+        self.rect = self.image.get_rect()
+        self.rect.topleft = [x, y]
+
+    def update(self):
+        self.index += .06
+
+        if self.index >= len(self.sprites):
+            self.index = 0
+
+        self.image = self.sprites[int(self.index)]
+
+
+def write(content, color="black", pos=(300, 200), size=20, font="fonts/PressStart2P-Regular.ttf"):
+    WIN.fill('#001359b0')  # Lam DEN nguyen man hinh
+    text = pygame.font.Font(font, size)
+    text_sur = text.render(content, False, color)
+    WIN.blit(text_sur, pos)
+
+
 def draw_window():
-    WIN.fill((255, 255, 255))  # Lam TRANG nguyen man hinh
+    WIN.fill('#01051f')  # Lam DEN nguyen man hinh
+    global movingBg
+    movingBg.draw(WIN)
+    movingBg.update()
 
     dem = 0
     for y in range(0, mapSize):
         for x in range(0, mapSize):
-
-            # To o 0 Bien
-            if (map[x][y] == waterIcon):
-                pygame.draw.rect(WIN, BLUE, rects[x][y])  # To XANH
+            pygame.draw.rect(WIN, "black", rects[y][x], 1)
 
             # To o 1 Cuop bien
             if (map[x][y] == enemyIcon):
@@ -73,10 +116,14 @@ def draw_window():
 
             # To o 3 Dao
             if (map[x][y] == obstacleIcon):
-                pygame.draw.rect(WIN, GREEN, rects[x][y])  # To XANH LA
+
+                toaDoDatHinh = (rects[x][y].x - 20,
+                                rects[x][y].y - 20)
+                WIN.blit(obstacle, toaDoDatHinh)
 
             if (map[x][y] == portalIcon):
                 pygame.draw.rect(WIN, PINK, rects[x][y])  # To HONG
+                WIN.blit(votex, rects[x][y])
 
             if (map[x][y] == deathIcon):
                 pygame.draw.rect(WIN, CHOCO, rects[x][y])  # To NAU
@@ -359,6 +406,59 @@ def enemyMove(posX, posY, x, y):
             visitedNum += 1
 
 
+def endSreen():
+    global win
+    if win:
+        write("You Win!!", "white")
+        print("You Win!!")
+
+    else:
+        write("Game over", "white")
+        print("Game over")
+
+
+def playScreen(events):
+
+    global screen, win
+
+    updateMap()
+    draw_window()
+
+    if CheckWinCondition() == 1:
+        win = True
+        screen = 2
+        return
+    elif CheckWinCondition() == -1:
+        win = False
+        screen = 2
+        return
+
+    for event in events:
+        if event.type == pygame.QUIT:
+            chayGame = False
+
+    bao = playerTurn(events)
+
+    updateMap()
+    draw_window()
+
+    if bao != 0:
+        print("ENEMY TURN")
+        enemyTurn()
+
+
+# Screen dau tien luon la screen game
+screen = 1
+
+win = False
+
+
+# Making moving gif group
+movingBg = pygame.sprite.Group()
+bg = Bg(10, 10)
+movingBg.add(bg)
+
+
 def main():
     initMap(waterIcon)
     # manual set up
@@ -379,44 +479,22 @@ def main():
     map[1][9] = obstacleIcon
     map[5][4] = obstacleIcon
 
-    win = False
-
     clock = pygame.time.Clock()
     chayGame = True
     while chayGame:
         clock.tick(FPS)
-
-        # system('cls')
-        updateMap()
-        draw_window()
-
-        if CheckWinCondition() == 1:
-            win = True
-            break
-        elif CheckWinCondition() == -1:
-            win = False
-            break
 
         events = pygame.event.get()
         for event in events:
             if event.type == pygame.QUIT:
                 chayGame = False
 
-        bao = playerTurn(events)
+        if screen == 1:
+            playScreen(events)
+        elif screen == 2:
+            endSreen()
 
-        # system('cls')
-        updateMap()
-        draw_window()
-        # time.sleep(1)
-
-        if bao != 0:
-            print("ENEMY TURN")
-            enemyTurn()
-
-    if win:
-        print("You Win!!")
-    else:
-        print("ゲームオーバー")
+        pygame.display.update()
 
     pygame.quit()
 
