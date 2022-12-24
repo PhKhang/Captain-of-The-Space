@@ -18,7 +18,7 @@ Last update + 5 mins: It turns out that I was just dumb
 ![image](https://user-images.githubusercontent.com/84757707/208334110-7c2227a9-33b6-4791-bdcd-d1c362c39e7e.png)
 
 
-24/12: Ok playing gif in pygame is harder than i thought
+24/12: Ok playing gif in pygame is harder than i thought. The theme will be space and shooting stuff up to be more unique ig. And merry christmas
 ![image](https://user-images.githubusercontent.com/84757707/209442290-a7364297-3a85-44d4-b28d-c693d52ae946.png)
 
 
