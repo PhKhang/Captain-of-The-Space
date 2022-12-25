@@ -192,6 +192,7 @@ def isInMap(x, y):
 
 def CheckWinCondition():
     if (map[shipPosX][shipPosY] == deathIcon):
+        print(f'{map[shipPosX][ shipPosY]}')
         return -1
 
     for i in range(0, mapSize):
@@ -498,11 +499,87 @@ def endSreen():
         print("Game over")
 
 
-def playScreen(events):
+game_restart = True
+
+
+def startScreen(events):
+    global screen
+
+    WIN.fill('#01051f')
+    write("Press any key to start the game!", "white", (150, 300))
+    for event in events:
+        if event.type == pygame.KEYDOWN:
+            screen = 1
+
+
+def playScreen(events, level=1):
+    global game_restart, map, shipPosX, shipPosY
+    if game_restart:
+        game_restart = False
+
+        match level:
+            case 0:
+                map = [
+                    ['@', '+', '~', '~', '~', '~', '~',
+                        '~', '~', '~', '@', '~', '~', '~'],
+                    ['~', '~', 'A', '~', '~', '~', '~',
+                        '~', '~', '!', '~', '~', '~', '~'],
+                    ['~', '~', '~', '~', '~', 'A', '~',
+                        '~', '~', '~', '~', '~', '~', '~'],
+                    ['~', '~', '~', '~', '~', '~', '~',
+                        '~', '~', '~', '~', '~', '~', '~'],
+                    ['~', '~', '~', '~', '~', '~', '~',
+                        '~', '~', '~', '~', '~', '~', '~'],
+                    ['~', '~', '~', '~', '!', '~', '~',
+                        '~', '~', '!', '~', '~', '~', '~'],
+                    ['~', 'A', 'A', '~', '~', '~', '~',
+                        '~', '~', 'X', '~', '~', '~', '~'],
+                    ['~', '~', '~', '~', '~', '~', '~',
+                        '~', '~', '~', '~', '~', '~', '~'],
+                    ['~', '~', '~', '~', '~', '~', '~',
+                        '~', '~', '~', '~', '~', '~', '~'],
+                    ['~', '~', '~', '~', '~', '~', '~',
+                        '~', '~', '~', '~', '~', '~', '~'],
+                    ['@', '~', '~', '~', '~', '~', '~',
+                        '~', '~', 'A', '@', '~', '~', '~'],
+                    ['@', '~', '~', '~', '~', '~', '~',
+                        '~', '~', 'A', '@', '~', '~', '~'],
+                    ['@', '~', '~', '~', '~', '~', '~', '~', '~', 'A', '@', '~', '~', '~'], ]
+                map[shipPosX][shipPosY] = shipIcon
+            case 1:
+                map = [['~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~'],
+                       ['~', '~', '~', '~', '~', '~', '~',
+                           '~', '~', '~', '~', '~', '~', '~'],
+                       ['~', '~', '~', '~', '~', '~', '~',
+                           'A', '~', '~', '~', '~', '~', '~'],
+                       ['~', '~', '~', '~', '~', '~', '~',
+                        '~', '~', '~', '~', '~', '~', '~'],
+                       ['~', '~', '~', '~', '~', '~', '~',
+                        '~', '~', '~', '~', '~', '~', '~'],
+                       ['~', '~', '~', '~', '~', '~', '~',
+                        '~', '~', '~', '~', '~', '~', '~'],
+                       ['~', '~', '~', '~', '~', '~', '~',
+                        '~', '~', '~', '~', '~', '~', '~'],
+                       ['~', '~', '~', '~', '~', '~', '~',
+                        '~', '~', '~', '~', '~', '~', '~'],
+                       ['~', '~', '~', '~', '~', '~', '~',
+                        '~', '~', '~', '~', '~', '~', '~'],
+                       ['~', '~', '~', '~', '~', '~', '~',
+                        '~', '~', '~', '~', '~', '~', '~'],
+                       ['~', '~', '~', '~', '~', '~', '~',
+                           '~', '~', '~', '~', '~', '~', '~'],
+                       ['~', '~', '~', '~', '~', '~', '~',
+                           '~', '~', '~', '~', '~', '~', '~'],
+                       ['~', '~', '~', '~', '~', '~', '~',
+                           '~', '~', '~', '~', '~', '~', '~'],
+                       ['~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~']]
+                shipPosX = 5
+                shipPosY = 9
+                map[shipPosX][shipPosY] = shipIcon
 
     global screen, win, hasMoved
 
-    # updateMap()
+    updateMap()
     draw_window()
 
     if CheckWinCondition() == 1:
@@ -538,7 +615,7 @@ def playScreen(events):
 
 
 # Screen dau tien luon la screen game
-screen = 1
+screen = 3
 
 win = False
 
@@ -555,7 +632,7 @@ shipGroup.add(ship)
 
 def main():
     initMap(waterIcon)
-    # manual set up
+    """ # manual set up
     map[shipPosX][shipPosY] = shipIcon
 
     map[0][0] = portalIcon
@@ -573,7 +650,7 @@ def main():
 
     map[5][9] = obstacleIcon
     map[1][9] = obstacleIcon
-    map[5][4] = obstacleIcon
+    map[5][4] = obstacleIcon """
 
     clock = pygame.time.Clock()
     chayGame = True
@@ -591,6 +668,8 @@ def main():
             playScreen(events)
         elif screen == 2:
             endSreen()
+        elif screen == 3:
+            startScreen(events)
 
         pygame.display.update()
 
