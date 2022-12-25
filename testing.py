@@ -40,13 +40,16 @@ for y in range(0, mapSize):  # Lap vao mang trong tren cac VUNG HINH VUONG
 
 
 # Variables for the game algo
+
+# icon game
 waterIcon = '~'
 shipIcon = 'X'
 enemyIcon = 'A'
 deathIcon = '#'
 obstacleIcon = '!'
 bulletIcon = '.'
-portalIcon = '@'  # icon game
+portalIcon = '@'
+monsterIcon = '+'
 
 shipPosX = 6
 shipPosY = 9
@@ -127,6 +130,9 @@ def draw_window():
 
             if (map[x][y] == deathIcon):
                 pygame.draw.rect(WIN, CHOCO, rects[x][y])  # To NAU
+
+            if (map[x][y] == monsterIcon):
+                pygame.draw.rect(WIN, "cornflowerblue", rects[x][y])  # To NAU
 
             if (map[x][y] == bulletIcon):
                 ptoaDoDatHinh = (rects[x][y].x + (100-80)/4,
@@ -406,6 +412,29 @@ def enemyMove(posX, posY, x, y):
             visitedNum += 1
 
 
+def monsterTurn():
+    x = y = None
+    global visitedNum, visited
+    visitedNum = 0
+
+    for i in range(0, mapSize):
+        for j in range(0, mapSize):
+            visited[i][j] = False
+
+    for i in range(0, mapSize):
+        for j in range(0, mapSize):
+            if visited[i][j] == False and map[i][j] == monsterIcon:
+                random.seed(time.time())
+                tempx = random.randint(-1, 1)
+                tempy = random.randint(-1, 1)
+
+                while (not isInMap(i + tempx, j + tempy)) and map[i + tempx][j + tempy] != obstacleIcon and map[i + tempx][j + tempy] != portalIcon and map[i + tempx][j + tempy] != deathIcon:
+                    tempx = random.randint(-1, 1)
+                    tempy = random.randint(-1, 1)
+
+            visited[i][j] = True
+
+
 def endSreen():
     global win
     if win:
@@ -413,7 +442,7 @@ def endSreen():
         print("You Win!!")
 
     else:
-        write("Game over", "white")
+        write("You dumbass, you lost", "white")
         print("Game over")
 
 
@@ -446,6 +475,8 @@ def playScreen(events):
         print("ENEMY TURN")
         enemyTurn()
 
+        monsterTurn()
+
 
 # Screen dau tien luon la screen game
 screen = 1
@@ -468,6 +499,8 @@ def main():
     map[0][10] = portalIcon
     map[10][0] = portalIcon
     map[10][10] = portalIcon
+
+    map[0][1] = monsterIcon
 
     map[6][1] = enemyIcon
     map[6][2] = enemyIcon
