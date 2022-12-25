@@ -95,6 +95,17 @@ class Bg(pygame.sprite.Sprite):
         self.image = self.sprites[int(self.index)]
 
 
+class Ship(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = pygame.transform.scale(pygame.image.load(
+            os.path.join("pikachuOnDeskSqr.png")), (OBJ_HEIGHT, OBJ_HEIGHT))
+        self.rect = self.image.get_rect()
+
+    def update(self, pos=(600, 300)):
+        self.rect.topleft = pos
+
+
 def write(content, color="black", pos=(300, 200), size=20, font="fonts/PressStart2P-Regular.ttf"):
     WIN.fill('#001359b0')  # Lam DEN nguyen man hinh
     text = pygame.font.Font(font, size)
@@ -104,9 +115,10 @@ def write(content, color="black", pos=(300, 200), size=20, font="fonts/PressStar
 
 def draw_window():
     WIN.fill('#01051f')  # Lam DEN nguyen man hinh
-    global movingBg
-    movingBg.draw(WIN)
-    movingBg.update()
+    global movingBgGroup, img1
+    movingBgGroup.draw(WIN)
+
+    movingBgGroup.update()
 
     dem = 0
     for y in range(0, mapSize):
@@ -138,14 +150,18 @@ def draw_window():
                 ptoaDoDatHinh = (rects[x][y].x + (100-80)/4,
                                  rects[x][y].y + (100-80)/4)
                 pygame.draw.rect(WIN, BLUE, rects[x][y])
-                WIN.blit(bullet, rects[x][y])
+                bullet_rect = bullet.get_rect(center=rects[x][y].center)
+                WIN.blit(bullet, bullet_rect)
 
             # To DO roi them hinh o duoc chon
-            if ((x == shipPosX and y == shipPosY) and (map[x][y] != enemyIcon)):
+            """ if ((x == shipPosX and y == shipPosY) and (map[x][y] != enemyIcon)):
                 toaDoDatHinh = (rects[x][y].x + (100-80)/4,
                                 rects[x][y].y + (100-80)/4)
                 pygame.draw.rect(WIN, RED, rects[x][y])
-                WIN.blit(img1, rects[x][y])
+                ship_rect = img1.get_rect(center=rects[x][y].center)
+                WIN.blit(img1, ship_rect)
+
+                shipGroup.update(rects[x][y].center) """
 
             # To len vien DO o co chuot hover
             if (rects[y][x].collidepoint(pygame.mouse.get_pos())):
@@ -153,6 +169,7 @@ def draw_window():
 
             dem += 1
 
+    shipGroup.draw(WIN)
     pygame.display.update()
 
 
@@ -188,10 +205,10 @@ def CheckWinCondition():
 def getKeyBoardInput(events):
     x = y = 0
 
-    print("Your joystick :")
+    """ print("Your joystick :")
     print("7 8 9")  # upper left  | up          | upper right
     print("4 5 6")  # left        | fire cannon | right
-    print("1 2 3")  # bottom left | bottom      | bottom right
+    print("1 2 3")  # bottom left | bottom      | bottom right """
 
     global shipStatus
 
@@ -341,7 +358,7 @@ def bulletMove(x, y):
         # system('cls')
         print("ban vien dan thu:", i, " tai: ",
               bullet1X, bullet1Y, bullet2X, bullet2Y)
-        updateMap()
+        # updateMap()
         draw_window()
         time.sleep(1)
 
@@ -432,7 +449,42 @@ def monsterTurn():
                     tempx = random.randint(-1, 1)
                     tempy = random.randint(-1, 1)
 
+                map[i][j] = waterIcon
+                map[i + tempx][j + tempy] = monsterIcon
+                visited[i + tempx][j + tempy] = True
+
             visited[i][j] = True
+
+
+def playerMoving():
+    ship_rect = img1.get_rect()
+    # WIN.blit(img1, ship_rect)
+
+    global ship, shipGroup
+    xOnMap = yOnMap = -1
+    for y in range(0, mapSize):
+        for x in range(0, mapSize):
+            if (map[y][x] == shipIcon):
+                xOnMap = 10 + x*OBJ_WIDTH
+                yOnMap = 10 + y*OBJ_WIDTH
+
+    if xOnMap == ship.rect.x and yOnMap == ship.rect.y:
+        return False
+
+    x = y = 0
+    if xOnMap > ship.rect.x:
+        x = 1
+    elif xOnMap < ship.rect.x:
+        x = -1
+
+    if yOnMap > ship.rect.y:
+        y = 1
+    elif yOnMap < ship.rect.y:
+        y = -1
+
+    shipGroup.update((int(ship.rect.x) + x, int(ship.rect.y) + y))
+
+    return True
 
 
 def endSreen():
@@ -448,9 +500,9 @@ def endSreen():
 
 def playScreen(events):
 
-    global screen, win
+    global screen, win, hasMoved
 
-    updateMap()
+    # updateMap()
     draw_window()
 
     if CheckWinCondition() == 1:
@@ -466,16 +518,23 @@ def playScreen(events):
         if event.type == pygame.QUIT:
             chayGame = False
 
-    bao = playerTurn(events)
+    if playerTurn(events):
+        hasMoved = True
 
-    updateMap()
+    if playerMoving():
+        print("Animation in progress")
+        return
+
+    # updateMap()
     draw_window()
 
-    if bao != 0:
+    print(f'{hasMoved = }')
+    if hasMoved:
         print("ENEMY TURN")
         enemyTurn()
 
         monsterTurn()
+        hasMoved = False
 
 
 # Screen dau tien luon la screen game
@@ -485,9 +544,13 @@ win = False
 
 
 # Making moving gif group
-movingBg = pygame.sprite.Group()
+movingBgGroup = pygame.sprite.Group()
 bg = Bg(10, 10)
-movingBg.add(bg)
+movingBgGroup.add(bg)
+
+shipGroup = pygame.sprite.Group()
+ship = Ship()
+shipGroup.add(ship)
 
 
 def main():
@@ -514,6 +577,8 @@ def main():
 
     clock = pygame.time.Clock()
     chayGame = True
+    global hasMoved
+    hasMoved = False
     while chayGame:
         clock.tick(FPS)
 
