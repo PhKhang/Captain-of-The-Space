@@ -26,6 +26,11 @@ Last update + 5 mins: It turns out that I was just dumb
 ![image](https://user-images.githubusercontent.com/84757707/209501968-0967a948-465e-4028-b897-24a7e016e2f8.png)
 
 
+Last edit + 10hrs: Player can now turn to the destination they want to go
+![image](https://user-images.githubusercontent.com/84757707/209555741-5c1da607-dff0-4119-b8fe-edc2ba3301c0.png)
+
+
+
 
 
 ## How to build and run the game
