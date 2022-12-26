@@ -22,6 +22,10 @@ Last update + 5 mins: It turns out that I was just dumb
 ![image](https://user-images.githubusercontent.com/84757707/209442290-a7364297-3a85-44d4-b28d-c693d52ae946.png)
 
 
+26/12: Black holes are now playable
+![image](https://user-images.githubusercontent.com/84757707/209501968-0967a948-465e-4028-b897-24a7e016e2f8.png)
+
+
 
 
 ## How to build and run the game
