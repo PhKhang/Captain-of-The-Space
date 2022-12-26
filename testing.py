@@ -1,5 +1,6 @@
 import time
 import random
+import numpy
 import pygame
 from os import system
 import os
@@ -106,24 +107,91 @@ class Ship(pygame.sprite.Sprite):
         self.rect.topleft = pos
 
 
+class Stuff(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+
+        self.sprites = []
+
+        for i in range(0, 60):
+            path_name = "images/votex/" + str(i).zfill(2) + ".gif"
+            image = pygame.image.load(path_name)
+            self.sprites.append(pygame.transform.scale(image, (86, 86)))
+
+        self.index = 0
+
+        self.image = self.sprites[self.index]
+
+        self.rect = self.image.get_rect()
+        self.rect.topleft = [x, y]
+
+    def animate(self):
+        self.index += .5
+
+        if self.index >= len(self.sprites):
+            self.index = 0
+
+        self.image = self.sprites[int(self.index)]
+
+    def update(self, x, y):
+        self.rect.center = [x, y]
+
+
 def write(content, color="black", pos=(300, 200), size=20, font="fonts/PressStart2P-Regular.ttf"):
-    WIN.fill('#001359b0')  # Lam DEN nguyen man hinh
     text = pygame.font.Font(font, size)
     text_sur = text.render(content, False, color)
     WIN.blit(text_sur, pos)
 
 
+def draw_dashed_line(surf, color, start_pos, end_pos, width=1, dash_length=10):
+    x1, y1 = start_pos
+    x2, y2 = end_pos
+    dl = dash_length
+
+    if (x1 == x2):
+        ycoords = [y for y in range(y1, y2, dl if y1 < y2 else -dl)]
+        xcoords = [x1] * len(ycoords)
+    elif (y1 == y2):
+        xcoords = [x for x in range(x1, x2, dl if x1 < x2 else -dl)]
+        ycoords = [y1] * len(xcoords)
+    else:
+        a = abs(x2 - x1)
+        b = abs(y2 - y1)
+        c = round(numpy.sqrt(a**2 + b**2))
+        dx = dl * a / c
+        dy = dl * b / c
+
+        xcoords = [x for x in numpy.arange(x1, x2, dx if x1 < x2 else -dx)]
+        ycoords = [y for y in numpy.arange(y1, y2, dy if y1 < y2 else -dy)]
+
+    next_coords = list(zip(xcoords[1::2], ycoords[1::2]))
+    last_coords = list(zip(xcoords[0::2], ycoords[0::2]))
+    for (x1, y1), (x2, y2) in zip(next_coords, last_coords):
+        start = (round(x1), round(y1))
+        end = (round(x2), round(y2))
+        pygame.draw.line(surf, color, start, end, width)
+
+
 def draw_window():
     WIN.fill('#01051f')  # Lam DEN nguyen man hinh
-    global movingBgGroup, img1
+    global movingBgGroup, img1, movingCelesGroup, vot
+
     movingBgGroup.draw(WIN)
 
     movingBgGroup.update()
 
+    vot.animate()
+
+    for i in range(0, mapSize):
+        draw_dashed_line(WIN, "#1C10AE", (10 + OBJ_WIDTH*i, 10),
+                         (10 + OBJ_WIDTH*i, 10 + mapSize*OBJ_WIDTH), dash_length=5)
+        draw_dashed_line(WIN, "#1C10AE", (10, 10 + OBJ_WIDTH*i),
+                         (10 + mapSize*OBJ_WIDTH,  10 + OBJ_WIDTH*i), dash_length=5)
+
     dem = 0
     for y in range(0, mapSize):
         for x in range(0, mapSize):
-            pygame.draw.rect(WIN, "black", rects[y][x], 1)
+            # pygame.draw.rect(WIN, "black", rects[y][x], 1)
 
             # To o 1 Cuop bien
             if (map[x][y] == enemyIcon):
@@ -137,8 +205,10 @@ def draw_window():
                 WIN.blit(obstacle, toaDoDatHinh)
 
             if (map[x][y] == portalIcon):
-                pygame.draw.rect(WIN, PINK, rects[x][y])  # To HONG
-                WIN.blit(votex, rects[x][y])
+                # pygame.draw.rect(WIN, PINK, rects[x][y])  # To HONG
+                movingCelesGroup.update(
+                    rects[x][y].centerx, rects[x][y].centery)
+                movingCelesGroup.draw(WIN)
 
             if (map[x][y] == deathIcon):
                 pygame.draw.rect(WIN, CHOCO, rects[x][y])  # To NAU
@@ -333,29 +403,38 @@ def fireCannon():
 
 def bulletMove(x, y):
     temp = None
-    global shipPosX, shipPosY
+    global shipPosX, shipPosY, map
+
+    bullet1Stop = bullet2Stop = False
+
     bullet1X = shipPosX
     bullet2X = shipPosX
     bullet1Y = shipPosY
     bullet2Y = shipPosY
-    for i in range(0, 3):
-        if (map[bullet1X][bullet1Y] != shipIcon and map[bullet1X][bullet1Y] != deathIcon):
-            map[bullet1X][bullet1Y] = waterIcon
-        if (map[bullet1X + x][bullet1Y + y] != waterIcon):
-            map[bullet1X + x][bullet1Y + y] = deathIcon
-        else:
-            map[bullet1X + x][bullet1Y + y] = bulletIcon
-        bullet1X += x
-        bullet1Y += y
 
-        if (map[bullet2X][bullet2Y] != shipIcon and map[bullet2X][bullet2Y] != deathIcon):
-            map[bullet2X][bullet2Y] = waterIcon
-        if (map[bullet2X - x][bullet2Y - y] != waterIcon):
-            map[bullet2X - x][bullet2Y - y] = deathIcon
-        else:
-            map[bullet2X - x][bullet2Y - y] = bulletIcon
-        bullet2X -= x
-        bullet2Y -= y
+    for i in range(0, 3):
+        if bullet1Stop == False and isInMap(bullet1X + x, bullet1Y + y):
+            if (map[bullet1X + x][bullet1Y + y] != waterIcon):
+                if (map[bullet1X + x][bullet1Y + y] == monsterIcon):
+                    bullet1Stop = True
+                else:
+                    map[bullet1X + x][bullet1Y + y] = deathIcon
+            else:
+                map[bullet1X + x][bullet1Y + y] = bulletIcon
+            bullet1X += x
+            bullet1Y += y
+
+        if (bullet2Stop == False and isInMap(bullet2X - x, bullet2Y - y)):
+            if (map[bullet2X - x][bullet2Y - y] != waterIcon):
+                if (map[bullet2X - x][bullet2Y - y] == monsterIcon):
+                    bullet2Stop = True
+                else:
+                    map[bullet2X - x][bullet2Y - y] = deathIcon
+            else:
+                map[bullet2X - x][bullet2Y - y] = bulletIcon
+            bullet2X -= x
+            bullet2Y -= y
+
         # system('cls')
         print("ban vien dan thu:", i, " tai: ",
               bullet1X, bullet1Y, bullet2X, bullet2Y)
@@ -363,11 +442,11 @@ def bulletMove(x, y):
         draw_window()
         time.sleep(1)
 
-    # clear the last bullet
-    if (map[bullet1X][bullet1Y] != shipIcon and map[bullet1X][bullet1Y] != deathIcon):
-        map[bullet1X][bullet1Y] = waterIcon
-    if (map[bullet2X][bullet2Y] != shipIcon and map[bullet2X][bullet2Y] != deathIcon):
-        map[bullet2X][bullet2Y] = waterIcon
+        # clear the last bullet
+        if (map[bullet1X][bullet1Y] != shipIcon and map[bullet1X][bullet1Y] != deathIcon):
+            map[bullet1X][bullet1Y] = waterIcon
+        if (map[bullet2X][bullet2Y] != shipIcon and map[bullet2X][bullet2Y] != deathIcon):
+            map[bullet2X][bullet2Y] = waterIcon
 
 
 def enemyTurn():
@@ -488,8 +567,8 @@ def playerMoving():
     return True
 
 
-def endSreen():
-    global win
+def endSreen(events):
+    global win, screen, game_restart
     if win:
         write("You Win!!", "white")
         print("You Win!!")
@@ -497,6 +576,12 @@ def endSreen():
     else:
         write("You dumbass, you lost", "white")
         print("Game over")
+
+    for event in events:
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                screen = 1
+                game_restart = True
 
 
 game_restart = True
@@ -512,7 +597,10 @@ def startScreen(events):
             screen = 1
 
 
-def playScreen(events, level=1):
+level = 0
+
+
+def playScreen(events):
     global game_restart, map, shipPosX, shipPosY
     if game_restart:
         game_restart = False
@@ -533,7 +621,7 @@ def playScreen(events, level=1):
                     ['~', '~', '~', '~', '!', '~', '~',
                         '~', '~', '!', '~', '~', '~', '~'],
                     ['~', 'A', 'A', '~', '~', '~', '~',
-                        '~', '~', 'X', '~', '~', '~', '~'],
+                        '~', '~', '~', '~', '~', '~', '~'],
                     ['~', '~', '~', '~', '~', '~', '~',
                         '~', '~', '~', '~', '~', '~', '~'],
                     ['~', '~', '~', '~', '~', '~', '~',
@@ -545,6 +633,8 @@ def playScreen(events, level=1):
                     ['@', '~', '~', '~', '~', '~', '~',
                         '~', '~', 'A', '@', '~', '~', '~'],
                     ['@', '~', '~', '~', '~', '~', '~', '~', '~', 'A', '@', '~', '~', '~'], ]
+                shipPosX = 6
+                shipPosY = 9
                 map[shipPosX][shipPosY] = shipIcon
             case 1:
                 map = [['~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~'],
@@ -595,15 +685,13 @@ def playScreen(events, level=1):
         if event.type == pygame.QUIT:
             chayGame = False
 
-    if playerTurn(events):
-        hasMoved = True
+    if playerMoving() == False:
+        if playerTurn(events):
+            hasMoved = True
 
     if playerMoving():
         print("Animation in progress")
         return
-
-    # updateMap()
-    draw_window()
 
     print(f'{hasMoved = }')
     if hasMoved:
@@ -624,6 +712,11 @@ win = False
 movingBgGroup = pygame.sprite.Group()
 bg = Bg(10, 10)
 movingBgGroup.add(bg)
+
+movingCelesGroup = pygame.sprite.Group()
+vot = Stuff(0, 0)
+movingCelesGroup.add(vot)
+
 
 shipGroup = pygame.sprite.Group()
 ship = Ship()
@@ -667,7 +760,7 @@ def main():
         if screen == 1:
             playScreen(events)
         elif screen == 2:
-            endSreen()
+            endSreen(events)
         elif screen == 3:
             startScreen(events)
 
