@@ -96,15 +96,30 @@ class Bg(pygame.sprite.Sprite):
         self.image = self.sprites[int(self.index)]
 
 
+def rot_center(image, angle, x, y):
+
+    rotated_image = pygame.transform.rotate(image, angle)
+    new_rect = rotated_image.get_rect(
+        center=image.get_rect(center=(x, y)).center)
+
+    return rotated_image, new_rect
+
+
 class Ship(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
         self.image = pygame.transform.scale(pygame.image.load(
-            os.path.join("pikachuOnDeskSqr.png")), (OBJ_HEIGHT, OBJ_HEIGHT))
+            "images/player/playerShip1_blue.png"), (OBJ_HEIGHT, OBJ_HEIGHT))
         self.rect = self.image.get_rect()
+        self.rot = 0
+
+    def rotate(self, value=0):
+        self.rot = value
 
     def update(self, pos=(600, 300)):
-        self.rect.topleft = pos
+        self.rect.center = (pos[0], pos[1])
+        self.image, self.rect = rot_center(pygame.transform.scale(pygame.image.load(
+            "images/player/playerShip1_blue.png"), (OBJ_HEIGHT, OBJ_HEIGHT)), self.rot, self.rect.centerx, self.rect.centery)
 
 
 class Stuff(pygame.sprite.Sprite):
@@ -182,7 +197,7 @@ def draw_window():
 
     vot.animate()
 
-    for i in range(0, mapSize):
+    for i in range(0, mapSize + 1):
         draw_dashed_line(WIN, "#1C10AE", (10 + OBJ_WIDTH*i, 10),
                          (10 + OBJ_WIDTH*i, 10 + mapSize*OBJ_WIDTH), dash_length=5)
         draw_dashed_line(WIN, "#1C10AE", (10, 10 + OBJ_WIDTH*i),
@@ -545,24 +560,41 @@ def playerMoving():
     for y in range(0, mapSize):
         for x in range(0, mapSize):
             if (map[y][x] == shipIcon):
-                xOnMap = 10 + x*OBJ_WIDTH
-                yOnMap = 10 + y*OBJ_WIDTH
+                xOnMap = 10 + x*OBJ_WIDTH + OBJ_WIDTH/2
+                yOnMap = 10 + y*OBJ_WIDTH + OBJ_WIDTH/2
 
-    if xOnMap == ship.rect.x and yOnMap == ship.rect.y:
+    if xOnMap == ship.rect.centerx and yOnMap == ship.rect.centery:
         return False
 
     x = y = 0
-    if xOnMap > ship.rect.x:
+    rotate = 0
+
+    if xOnMap > ship.rect.centerx:
         x = 1
-    elif xOnMap < ship.rect.x:
+        rotate = -90
+    elif xOnMap < ship.rect.centerx:
         x = -1
+        rotate = 90
 
-    if yOnMap > ship.rect.y:
+    if yOnMap > ship.rect.centery:
         y = 1
-    elif yOnMap < ship.rect.y:
+        if rotate == 0:
+            rotate = 180
+        elif rotate == 90:
+            rotate = 135
+        else:
+            rotate = -135
+    elif yOnMap < ship.rect.centery:
         y = -1
+        if rotate == 0:
+            rotate = 0
+        elif rotate == 90:
+            rotate = 45
+        else:
+            rotate = -45
 
-    shipGroup.update((int(ship.rect.x) + x, int(ship.rect.y) + y))
+    ship.rotate(rotate)
+    shipGroup.update((int(ship.rect.centerx) + x, int(ship.rect.centery) + y))
 
     return True
 
