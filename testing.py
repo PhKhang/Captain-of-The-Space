@@ -1,6 +1,7 @@
 import time
 import random
 import numpy
+from copy import deepcopy
 import pygame
 from os import system
 import os
@@ -27,8 +28,6 @@ img1 = pygame.transform.scale(pygame.image.load(
     os.path.join("pikachuOnDeskSqr.png")), (OBJ_HEIGHT, OBJ_HEIGHT))  # Hinh anh va thu nho thanh 80x80px
 bullet = pygame.transform.scale(pygame.image.load(
     os.path.join("bullet.png")), (OBJ_HEIGHT, OBJ_HEIGHT))  # Hinh anh va thu nho thanh 80x80px
-votex = pygame.transform.scale(pygame.image.load(
-    "images/votex/01.gif"), (60, 60))
 obstacle = pygame.transform.scale(pygame.image.load(
     "images/obstacle/neutron.gif"), (92, 92))
 
@@ -60,6 +59,140 @@ shipStatus = 1
 # 2, 8 = _  -> 2
 # 3, 7 = \  -> 3
 # 4, 6 = |  -> 4
+
+
+mapList = [
+    [
+        ["@", "~", "~", "~", "~", "~", "~", "~", "~", "~", "@"],
+        ["~", "~", "~", "~", "~", "~", "~", "~", "!", "~", "~"],
+        ["~", "~", "~", "~", "~", "~", "~", "~", "~", "~", "~"],
+        ["~", "~", "~", "~", "~", "~", "~", "~", "~", "~", "~"],
+        ["~", "~", "!", "~", "~", "~", "~", "~", "~", "~", "~"],
+        ["A", "~", "~", "~", "~", "~", "~", "~", "~", "~", "~"],
+        ["~", "~", "~", "~", "~", "~", "~", "~", "~", "~", "~"],
+        ["~", "~", "~", "~", "~", "~", "~", "~", "~", "~", "~"],
+        ["~", "~", "~", "A", "~", "~", "~", "~", "~", "~", "!"],
+        ["!", "A", "~", "~", "~", "~", "~", "~", "~", "~", "~"],
+        ["@", "~", "~", "~", "~", "~", "~", "~", "~", "~", "@"],
+    ],
+    [
+        ["@", "~", "~", "~", "~", "A", "~", "~", "~", "~", "@"],
+        ["~", "A", "~", "~", "!", "~", "!", "~", "~", "~", "~"],
+        ["~", "~", "~", "!", "~", "~", "~", "~", "~", "~", "~"],
+        ["~", "~", "~", "~", "~", "~", "~", "~", "~", "~", "~"],
+        ["~", "~", "~", "~", "~", "~", "~", "~", "~", "A", "!"],
+        ["~", "~", "~", "~", "~", "~", "~", "~", "~", "~", "~"],
+        ["~", "~", "~", "~", "~", "~", "~", "~", "~", "~", "~"],
+        ["~", "~", "~", "~", "~", "~", "~", "~", "~", "~", "~"],
+        ["~", "~", "~", "~", "~", "~", "!", "~", "A", "~", "~"],
+        ["!", "!", "~", "~", "~", "~", "~", "~", "~", "!", "~"],
+        ["@", "~", "~", "~", "~", "~", "~", "~", "~", "~", "@"],
+    ],
+    [
+        ["@", "!", "~", "~", "~", "~", "~", "~", "~", "~", "@"],
+        ["~", "~", "~", "~", "~", "~", "~", "~", "~", "~", "A"],
+        ["~", "!", "~", "~", "~", "~", "~", "~", "~", "~", "~"],
+        ["A", "~", "~", "~", "~", "~", "~", "~", "!", "~", "~"],
+        ["A", "~", "~", "~", "~", "~", "~", "~", "~", "~", "~"],
+        ["~", "!", "~", "~", "~", "~", "~", "~", "~", "~", "~"],
+        ["~", "!", "!", "~", "~", "~", "~", "~", "~", "~", "!"],
+        ["~", "~", "~", "~", "~", "~", "~", "~", "~", "~", "~"],
+        ["~", "~", "!", "~", "~", "~", "!", "~", "~", "~", "!"],
+        ["~", "~", "A", "~", "~", "~", "~", "~", "~", "A", "~"],
+        ["@", "~", "~", "!", "~", "~", "~", "~", "~", "!", "@"],
+    ],
+    [
+        ["@", "~", "~", "~", "~", "A", "!", "~", "~", "~", "@"],
+        ["~", "~", "~", "~", "~", "A", "~", "~", "~", "~", "~"],
+        ["!", "~", "~", "A", "~", "~", "~", "~", "!", "~", "~"],
+        ["~", "~", "~", "~", "~", "~", "~", "~", "~", "A", "~"],
+        ["~", "~", "~", "~", "~", "~", "~", "~", "~", "~", "~"],
+        ["~", "~", "~", "~", "~", "~", "~", "~", "~", "~", "~"],
+        ["~", "~", "~", "~", "~", "~", "~", "~", "~", "~", "~"],
+        ["~", "~", "~", "~", "~", "~", "~", "~", "~", "~", "~"],
+        ["~", "~", "~", "~", "~", "~", "~", "!", "~", "A", "~"],
+        ["~", "~", "~", "~", "~", "~", "~", "~", "~", "~", "~"],
+        ["@", "~", "~", "~", "~", "~", "~", "~", "~", "A", "@"],
+    ],
+    [
+        ["@", "~", "~", "~", "~", "A", "~", "~", "~", "~", "@"],
+        ["~", "~", "~", "~", "~", "~", "~", "~", "~", "~", "~"],
+        ["~", "~", "~", "A", "~", "A", "~", "~", "~", "~", "~"],
+        ["~", "~", "A", "~", "~", "~", "~", "~", "~", "!", "~"],
+        ["~", "~", "~", "~", "~", "~", "~", "~", "~", "~", "~"],
+        ["~", "~", "~", "~", "~", "~", "~", "~", "~", "~", "~"],
+        ["~", "~", "~", "~", "~", "~", "~", "~", "~", "~", "~"],
+        ["~", "~", "A", "~", "~", "~", "~", "~", "~", "~", "~"],
+        ["~", "~", "~", "~", "~", "~", "!", "~", "~", "~", "~"],
+        ["!", "~", "~", "~", "A", "!", "~", "~", "~", "~", "~"],
+        ["@", "~", "!", "~", "~", "~", "~", "~", "A", "~", "@"],
+    ],
+    [
+        ["@", "~", "!", "~", "!", "~", "~", "~", "A", "~", "@"],
+        ["~", "~", "~", "~", "~", "!", "~", "~", "~", "~", "A"],
+        ["~", "~", "~", "~", "~", "~", "~", "~", "~", "~", "~"],
+        ["~", "~", "~", "~", "~", "~", "~", "~", "A", "!", "~"],
+        ["~", "~", "~", "~", "~", "~", "~", "~", "~", "~", "~"],
+        ["A", "~", "A", "~", "~", "~", "~", "~", "~", "~", "~"],
+        ["~", "~", "~", "~", "~", "~", "~", "~", "~", "~", "~"],
+        ["~", "~", "A", "~", "~", "~", "~", "~", "~", "~", "~"],
+        ["~", "~", "~", "A", "~", "~", "~", "~", "!", "~", "~"],
+        ["~", "~", "~", "~", "~", "~", "~", "~", "~", "~", "~"],
+        ["@", "~", "A", "~", "~", "~", "~", "!", "~", "~", "@"],
+    ],
+    [
+        ["@", "~", "~", "~", "~", "~", "~", "~", "~", "~", "@"],
+        ["~", "~", "~", "~", "!", "~", "~", "~", "~", "~", "~"],
+        ["A", "~", "~", "~", "~", "~", "!", "~", "~", "~", "~"],
+        ["A", "~", "A", "~", "~", "~", "~", "~", "~", "A", "~"],
+        ["A", "~", "~", "~", "~", "~", "~", "~", "~", "~", "~"],
+        ["~", "~", "~", "~", "~", "~", "~", "~", "~", "A", "~"],
+        ["~", "~", "~", "~", "~", "~", "~", "~", "~", "!", "~"],
+        ["~", "A", "~", "~", "~", "~", "~", "~", "~", "~", "!"],
+        ["~", "~", "~", "~", "~", "~", "~", "~", "!", "~", "~"],
+        ["!", "~", "~", "~", "~", "~", "~", "~", "A", "~", "~"],
+        ["@", "~", "~", "~", "~", "~", "A", "~", "!", "~", "@"],
+    ],
+    [
+        ["@", "~", "~", "~", "~", "!", "~", "A", "~", "~", "@"],
+        ["~", "!", "~", "~", "~", "A", "A", "~", "~", "~", "~"],
+        ["~", "~", "!", "!", "~", "~", "~", "~", "A", "~", "~"],
+        ["A", "~", "~", "~", "~", "~", "~", "~", "~", "~", "~"],
+        ["~", "~", "~", "~", "~", "~", "~", "~", "~", "!", "~"],
+        ["~", "~", "~", "~", "~", "~", "~", "~", "~", "A", "~"],
+        ["!", "~", "~", "~", "~", "~", "~", "~", "~", "~", "~"],
+        ["A", "~", "~", "~", "~", "~", "~", "~", "~", "~", "~"],
+        ["~", "~", "~", "~", "~", "~", "A", "~", "~", "~", "~"],
+        ["~", "~", "~", "~", "~", "~", "~", "~", "~", "~", "A"],
+        ["@", "~", "~", "A", "~", "!", "!", "~", "~", "~", "@"],
+    ],
+    [
+        ["@", "!", "~", "~", "~", "~", "A", "~", "~", "~", "@"],
+        ["~", "~", "A", "~", "~", "~", "A", "~", "~", "~", "~"],
+        ["A", "~", "~", "~", "~", "~", "A", "~", "~", "~", "~"],
+        ["A", "~", "~", "~", "~", "~", "~", "~", "~", "~", "~"],
+        ["!", "~", "~", "~", "~", "~", "~", "~", "~", "~", "A"],
+        ["~", "~", "~", "~", "~", "~", "~", "~", "~", "~", "~"],
+        ["!", "~", "~", "~", "~", "~", "~", "~", "~", "~", "~"],
+        ["!", "~", "~", "~", "~", "~", "~", "~", "A", "~", "~"],
+        ["~", "A", "~", "A", "~", "~", "~", "~", "~", "A", "~"],
+        ["~", "~", "~", "~", "~", "~", "~", "~", "~", "~", "~"],
+        ["@", "~", "~", "~", "~", "~", "~", "~", "!", "~", "@"],
+    ],
+    [
+        ["@", "A", "~", "~", "~", "A", "~", "~", "~", "~", "@"],
+        ["~", "~", "~", "~", "!", "A", "~", "~", "~", "~", "~"],
+        ["~", "~", "~", "~", "!", "~", "~", "~", "~", "~", "!"],
+        ["A", "~", "~", "~", "~", "~", "~", "~", "A", "~", "!"],
+        ["~", "~", "~", "~", "~", "~", "~", "~", "~", "A", "A"],
+        ["~", "A", "~", "~", "~", "~", "~", "~", "~", "~", "~"],
+        ["!", "~", "~", "~", "~", "~", "~", "~", "!", "A", "~"],
+        ["~", "~", "~", "~", "~", "~", "~", "~", "~", "~", "~"],
+        ["~", "!", "~", "~", "~", "A", "~", "~", "~", "~", "~"],
+        ["~", "~", "~", "~", "~", "~", "~", "~", "~", "A", "A"],
+        ["@", "!", "~", "~", "~", "~", "~", "~", "!", "~", "@"],
+    ],
+]
 
 
 map = [['0']*MAX for i in range(0, MAX)]
@@ -116,10 +249,27 @@ class Ship(pygame.sprite.Sprite):
     def rotate(self, value=0):
         self.rot = value
 
-    def update(self, pos=(600, 300)):
+    def update(self, pos=(100, 100)):
         self.rect.center = (pos[0], pos[1])
         self.image, self.rect = rot_center(pygame.transform.scale(pygame.image.load(
             "images/player/playerShip1_blue.png"), (OBJ_HEIGHT, OBJ_HEIGHT)), self.rot, self.rect.centerx, self.rect.centery)
+
+
+class Enemy(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = pygame.transform.scale(pygame.image.load(
+            "images/enemy/enemyBlack2.png"), (OBJ_HEIGHT, OBJ_HEIGHT))
+        self.rect = self.image.get_rect()
+        self.rot = 0
+
+    def rotate(self, value=0):
+        self.rot = value
+
+    def update(self, pos=(100, 100)):
+        self.rect.center = (pos[0], pos[1])
+        self.image, self.rect = rot_center(pygame.transform.scale(pygame.image.load(
+            "images/enemy/enemyBlack2.png"), (OBJ_HEIGHT, OBJ_HEIGHT)), self.rot, self.rect.centerx, self.rect.centery)
 
 
 class Stuff(pygame.sprite.Sprite):
@@ -152,9 +302,13 @@ class Stuff(pygame.sprite.Sprite):
         self.rect.center = [x, y]
 
 
-def write(content, color="black", pos=(300, 200), size=20, font="fonts/PressStart2P-Regular.ttf"):
+def write(content, color="black", pos=(100, 200), size=20, font="fonts/PressStart2P-Regular.ttf", background=0):
     text = pygame.font.Font(font, size)
-    text_sur = text.render(content, False, color)
+    if background == 0:
+        text_sur = text.render(content, False, color)
+    else:
+        text_sur = text.render(content, False, color, "#01051f")
+
     WIN.blit(text_sur, pos)
 
 
@@ -210,7 +364,9 @@ def draw_window():
 
             # To o 1 Cuop bien
             if (map[x][y] == enemyIcon):
-                pygame.draw.rect(WIN, RED, rects[x][y])  # To DO
+                # pygame.draw.rect(WIN, RED, rects[x][y])  # To DO
+                enemyGroup.update(rects[x][y].center)
+                enemyGroup.draw(WIN)
 
             # To o 3 Dao
             if (map[x][y] == obstacleIcon):
@@ -255,6 +411,7 @@ def draw_window():
             dem += 1
 
     shipGroup.draw(WIN)
+    write(str(bonusTurn_score), "white", (600, 100))
     pygame.display.update()
 
 
@@ -540,7 +697,7 @@ def monsterTurn():
                 tempx = random.randint(-1, 1)
                 tempy = random.randint(-1, 1)
 
-                while (not isInMap(i + tempx, j + tempy)) and map[i + tempx][j + tempy] != obstacleIcon and map[i + tempx][j + tempy] != portalIcon and map[i + tempx][j + tempy] != deathIcon:
+                while (not isInMap(i + tempx, j + tempy)) and map[i + tempx][j + tempy] != obstacleIcon and map[i + tempx][j + tempy] != portalIcon and map[i + tempx][j + tempy] != deathIcon and map[i + tempx][j + tempy] != shipIcon:
                     tempx = random.randint(-1, 1)
                     tempy = random.randint(-1, 1)
 
@@ -552,8 +709,6 @@ def monsterTurn():
 
 
 def playerMoving():
-    ship_rect = img1.get_rect()
-    # WIN.blit(img1, ship_rect)
 
     global ship, shipGroup
     xOnMap = yOnMap = -1
@@ -569,29 +724,33 @@ def playerMoving():
     x = y = 0
     rotate = 0
 
-    if xOnMap > ship.rect.centerx:
-        x = 1
-        rotate = -90
-    elif xOnMap < ship.rect.centerx:
-        x = -1
-        rotate = 90
+    if abs(xOnMap - ship.rect.centerx) <= 71 and abs(yOnMap - ship.rect.centery) <= 71:
+        if xOnMap > ship.rect.centerx:
+            x = 1
+            rotate = -90
+        elif xOnMap < ship.rect.centerx:
+            x = -1
+            rotate = 90
 
-    if yOnMap > ship.rect.centery:
-        y = 1
-        if rotate == 0:
-            rotate = 180
-        elif rotate == 90:
-            rotate = 135
-        else:
-            rotate = -135
-    elif yOnMap < ship.rect.centery:
-        y = -1
-        if rotate == 0:
-            rotate = 0
-        elif rotate == 90:
-            rotate = 45
-        else:
-            rotate = -45
+        if yOnMap > ship.rect.centery:
+            y = 1
+            if rotate == 0:
+                rotate = 180
+            elif rotate == 90:
+                rotate = 135
+            else:
+                rotate = -135
+        elif yOnMap < ship.rect.centery:
+            y = -1
+            if rotate == 0:
+                rotate = 0
+            elif rotate == 90:
+                rotate = 45
+            else:
+                rotate = -45
+    else:
+        x = xOnMap - ship.rect.x
+        y = yOnMap - ship.rect.y
 
     ship.rotate(rotate)
     shipGroup.update((int(ship.rect.centerx) + x, int(ship.rect.centery) + y))
@@ -600,17 +759,32 @@ def playerMoving():
 
 
 def endSreen(events):
-    global win, screen, game_restart
+    global win, screen, game_restart, display_score, level
+
+    if display_score + 5 < lvl_score + bonusTurn_score:
+        display_score += 5
+    else:
+        display_score = lvl_score + bonusTurn_score
+
     if win:
-        write("You Win!!", "white")
-        print("You Win!!")
+        pygame.time.set_timer(bonusReduce, 0)
+
+        message = "You Win!! " + \
+            str(display_score)
+        write(message, "white", background=1)
+        print(message)
 
     else:
-        write("You dumbass, you lost", "white")
+        write("You dumbass, you lost. Space to retry, right arrow for next level", "white")
         print("Game over")
 
     for event in events:
         if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_RIGHT:
+                screen = 1
+                game_restart = True
+                level += 1
+
             if event.key == pygame.K_SPACE:
                 screen = 1
                 game_restart = True
@@ -637,67 +811,17 @@ def playScreen(events):
     if game_restart:
         game_restart = False
 
-        match level:
-            case 0:
-                map = [
-                    ['@', '+', '~', '~', '~', '~', '~',
-                        '~', '~', '~', '@', '~', '~', '~'],
-                    ['~', '~', 'A', '~', '~', '~', '~',
-                        '~', '~', '!', '~', '~', '~', '~'],
-                    ['~', '~', '~', '~', '~', 'A', '~',
-                        '~', '~', '~', '~', '~', '~', '~'],
-                    ['~', '~', '~', '~', '~', '~', '~',
-                        '~', '~', '~', '~', '~', '~', '~'],
-                    ['~', '~', '~', '~', '~', '~', '~',
-                        '~', '~', '~', '~', '~', '~', '~'],
-                    ['~', '~', '~', '~', '!', '~', '~',
-                        '~', '~', '!', '~', '~', '~', '~'],
-                    ['~', 'A', 'A', '~', '~', '~', '~',
-                        '~', '~', '~', '~', '~', '~', '~'],
-                    ['~', '~', '~', '~', '~', '~', '~',
-                        '~', '~', '~', '~', '~', '~', '~'],
-                    ['~', '~', '~', '~', '~', '~', '~',
-                        '~', '~', '~', '~', '~', '~', '~'],
-                    ['~', '~', '~', '~', '~', '~', '~',
-                        '~', '~', '~', '~', '~', '~', '~'],
-                    ['@', '~', '~', '~', '~', '~', '~',
-                        '~', '~', 'A', '@', '~', '~', '~'],
-                    ['@', '~', '~', '~', '~', '~', '~',
-                        '~', '~', 'A', '@', '~', '~', '~'],
-                    ['@', '~', '~', '~', '~', '~', '~', '~', '~', 'A', '@', '~', '~', '~'], ]
-                shipPosX = 6
-                shipPosY = 9
-                map[shipPosX][shipPosY] = shipIcon
-            case 1:
-                map = [['~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~'],
-                       ['~', '~', '~', '~', '~', '~', '~',
-                           '~', '~', '~', '~', '~', '~', '~'],
-                       ['~', '~', '~', '~', '~', '~', '~',
-                           'A', '~', '~', '~', '~', '~', '~'],
-                       ['~', '~', '~', '~', '~', '~', '~',
-                        '~', '~', '~', '~', '~', '~', '~'],
-                       ['~', '~', '~', '~', '~', '~', '~',
-                        '~', '~', '~', '~', '~', '~', '~'],
-                       ['~', '~', '~', '~', '~', '~', '~',
-                        '~', '~', '~', '~', '~', '~', '~'],
-                       ['~', '~', '~', '~', '~', '~', '~',
-                        '~', '~', '~', '~', '~', '~', '~'],
-                       ['~', '~', '~', '~', '~', '~', '~',
-                        '~', '~', '~', '~', '~', '~', '~'],
-                       ['~', '~', '~', '~', '~', '~', '~',
-                        '~', '~', '~', '~', '~', '~', '~'],
-                       ['~', '~', '~', '~', '~', '~', '~',
-                        '~', '~', '~', '~', '~', '~', '~'],
-                       ['~', '~', '~', '~', '~', '~', '~',
-                           '~', '~', '~', '~', '~', '~', '~'],
-                       ['~', '~', '~', '~', '~', '~', '~',
-                           '~', '~', '~', '~', '~', '~', '~'],
-                       ['~', '~', '~', '~', '~', '~', '~',
-                           '~', '~', '~', '~', '~', '~', '~'],
-                       ['~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~', '~']]
-                shipPosX = 5
-                shipPosY = 9
-                map[shipPosX][shipPosY] = shipIcon
+        global bonusTurn_score, display_score
+
+        bonusTurn_score = 400
+        display_score = 0
+        pygame.time.set_timer(bonusReduce, 1000)
+
+        map = deepcopy(mapList[level])
+
+        shipPosX = 5
+        shipPosY = 5
+        map[shipPosX][shipPosY] = shipIcon
 
     global screen, win, hasMoved
 
@@ -734,7 +858,7 @@ def playScreen(events):
         hasMoved = False
 
 
-# Screen dau tien luon la screen game
+# Screen dau tien luon la screen start
 screen = 3
 
 win = False
@@ -752,30 +876,24 @@ movingCelesGroup.add(vot)
 
 shipGroup = pygame.sprite.Group()
 ship = Ship()
+ship.update
 shipGroup.add(ship)
+
+enemyGroup = pygame.sprite.Group()
+enemy = Enemy()
+enemy.update
+enemyGroup.add(enemy)
+
+
+lvl_score = 200
+bonusTurn_score = 400
+total_score = 0
+display_score = 0
+
+bonusReduce = pygame.USEREVENT + 1
 
 
 def main():
-    initMap(waterIcon)
-    """ # manual set up
-    map[shipPosX][shipPosY] = shipIcon
-
-    map[0][0] = portalIcon
-    map[0][10] = portalIcon
-    map[10][0] = portalIcon
-    map[10][10] = portalIcon
-
-    map[0][1] = monsterIcon
-
-    map[6][1] = enemyIcon
-    map[6][2] = enemyIcon
-    map[2][5] = enemyIcon
-    map[10][9] = enemyIcon
-    map[1][2] = enemyIcon
-
-    map[5][9] = obstacleIcon
-    map[1][9] = obstacleIcon
-    map[5][4] = obstacleIcon """
 
     clock = pygame.time.Clock()
     chayGame = True
@@ -788,6 +906,11 @@ def main():
         for event in events:
             if event.type == pygame.QUIT:
                 chayGame = False
+
+            if event.type == bonusReduce:
+                global bonusTurn_score
+                if bonusTurn_score > 0:
+                    bonusTurn_score -= 10
 
         if screen == 1:
             playScreen(events)
