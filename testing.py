@@ -581,18 +581,14 @@ def fireCannon():
     bulletMove(x, y)
 
 
-def bulletMoving():
+def bulletMoving(x, y):
 
     global ship, shipGroup
-    xOnMap = yOnMap = -1
-    for y in range(0, mapSize):
-        for x in range(0, mapSize):
-            if (map[y][x] == shipIcon):
-                xOnMap = 10 + x*OBJ_WIDTH + OBJ_WIDTH/2
-                yOnMap = 10 + y*OBJ_WIDTH + OBJ_WIDTH/2
+    xOnMap = 10 + x*OBJ_WIDTH + OBJ_WIDTH/2
+    yOnMap = 10 + x*OBJ_WIDTH + OBJ_WIDTH/2
 
-    if xOnMap == ship.rect.centerx and yOnMap == ship.rect.centery:
-        return False
+    while xOnMap != ship.rect.centerx and yOnMap != ship.rect.centery:
+        gameCore()
 
     x = y = 0
     rotate = 0
@@ -835,7 +831,7 @@ imgAlpha = 0
 
 
 def endSreen(events):
-    global win, screen, game_restart, display_score, imgAlpha
+    global win, screen, game_restart, display_score, imgAlpha, level
 
     if display_score + 5 < lvl_score + bonusTurn_score:
         display_score += 5
@@ -890,8 +886,9 @@ game_restart = True
 def startScreen(events):
     global screen
 
-    WIN.fill('#01051f')
-    write("Press any key to start the game!", "white", (150, 300))
+    winscreen = pygame.image.load("images/screen/startscreen.png")
+    WIN.blit(winscreen, (0, 0))
+    write("Press any key to start the game!", "white", (900/2, 400))
     for event in events:
         if event.type == pygame.KEYDOWN:
             screen = 1
