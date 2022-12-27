@@ -24,6 +24,7 @@ pygame.display.set_caption("The pirate of The Seven Seas")
 
 pygame.font.init()
 
+
 img1 = pygame.transform.smoothscale(pygame.image.load(
     os.path.join("pikachuOnDeskSqr.png")), (OBJ_HEIGHT, OBJ_HEIGHT))  # Hinh anh va thu nho thanh 80x80px
 bullet = pygame.transform.smoothscale(pygame.image.load(
@@ -201,6 +202,9 @@ map = [['0']*MAX for i in range(0, MAX)]
 visited = [['0']*MAX for i in range(0, MAX)]
 visitedNum = 0
 
+encouragement = ["Wow, you actually accomplished something for once.",
+                 "Gamer Moment", "Great job, now you can beat my cat", ""]
+
 
 class Bg(pygame.sprite.Sprite):
     def __init__(self, x, y):
@@ -318,6 +322,16 @@ def write(content, color="black", pos=(900/2, 600/2), size=20, font="fonts/Press
     WIN.blit(text_sur, text_rec)
 
 
+def writeLeft(content, color="black", pos=(900/2, 600/2), size=20, font="fonts/PressStart2P-Regular.ttf", background=0):
+    text = pygame.font.Font(font, size)
+    if background == 0:
+        text_sur = text.render(content, False, color)
+    else:
+        text_sur = text.render(content, False, color, "#01051f")
+
+    WIN.blit(text_sur, pos)
+
+
 def draw_dashed_line(surf, color, start_pos, end_pos, width=1, dash_length=10):
     x1, y1 = start_pos
     x2, y2 = end_pos
@@ -347,15 +361,20 @@ def draw_dashed_line(surf, color, start_pos, end_pos, width=1, dash_length=10):
         pygame.draw.line(surf, color, start, end, width)
 
 
-def draw_window():
+def draw_window(laser=(-1, -1)):
     WIN.fill('#01051f')  # Lam DEN nguyen man hinh
-    global movingBgGroup, movingCelesGroup, vot
+
+    global movingBgGroup, movingCelesGroup, vot, ship
 
     movingBgGroup.draw(WIN)
 
     movingBgGroup.update()
 
     vot.animate()
+
+    if laser[0] != -1:
+        laserGroup.update(laser)
+        laserGroup.draw(WIN)
 
     for i in range(0, mapSize + 1):
         draw_dashed_line(WIN, "#1C10AE", (10 + OBJ_WIDTH*i, 10),
@@ -400,7 +419,6 @@ def draw_window():
 
                 laserGroup.update(bullet_rect.center)
                 laserGroup.draw(WIN)
-                print("bullets drawn")
 
             # To DO roi them hinh o duoc chon
             """ if ((x == shipPosX and y == shipPosY) and (map[x][y] != enemyIcon)):
@@ -419,7 +437,14 @@ def draw_window():
             dem += 1
 
     shipGroup.draw(WIN)
-    write(str(bonusTurn_score), "white", (600, 100))
+    message = "LEVEL " + str(level)
+    writeLeft(message, "white", (570, 50), size=40)
+    message = "Bonus point: " + str(bonusTurn_score)
+    writeLeft(message, "white", (570, 110))
+
+    instruct = pygame.image.load("images/screen/instruct.png")
+    WIN.blit(instruct, (560, 300))
+
     pygame.display.update()
 
 
@@ -545,11 +570,17 @@ def playerTurn(events):
         else:
             random.seed(time.time())
             tempx = tempy = None
-            while (True):
+            dx = [-1, -1, -1,  0, 0,  1, 1, 1]
+            dy = [-1,  0,  1, -1, 1, -1, 0, 1]
+            badPos = True
+            while (badPos):
                 tempx = random.randint(0, 10)
                 tempy = random.randint(0, 10)
                 if (map[tempx][tempy] == waterIcon):
-                    break
+                    badPos = False
+                    for i in range(0, 8):
+                        if (isInMap(tempx + dx[i], tempy + dy[i]) and map[tempx + dx[i]][tempy + dy[i]] == enemyIcon):
+                            badPos = True
             shipPosX = tempx
             shipPosY = tempy
             map[shipPosX][shipPosY] = shipIcon
@@ -581,50 +612,71 @@ def fireCannon():
     bulletMove(x, y)
 
 
-def bulletMoving(x, y):
+def bulletMoving():
 
-    global ship, shipGroup
-    xOnMap = 10 + x*OBJ_WIDTH + OBJ_WIDTH/2
-    yOnMap = 10 + x*OBJ_WIDTH + OBJ_WIDTH/2
+    global ship, laserGroup, map
+    xTarget = xOnMap = ship.rect.centerx
+    yTarget = yOnMap = ship.rect.centery
 
-    while xOnMap != ship.rect.centerx and yOnMap != ship.rect.centery:
-        gameCore()
+    if shipStatus == 2:
+        xTarget += OBJ_WIDTH*3
 
-    x = y = 0
-    rotate = 0
+        xOnMap += OBJ_WIDTH
 
-    if abs(xOnMap - ship.rect.centerx) <= 71 and abs(yOnMap - ship.rect.centery) <= 71:
-        if xOnMap > ship.rect.centerx:
-            x = 1
-            rotate = -90
-        elif xOnMap < ship.rect.centerx:
-            x = -1
-            rotate = 90
+    elif shipStatus == 1:
+        xTarget += OBJ_WIDTH*3
+        yTarget += OBJ_WIDTH*3
 
-        if yOnMap > ship.rect.centery:
-            y = 1
-            if rotate == 0:
-                rotate = 180
-            elif rotate == 90:
-                rotate = 135
+        xOnMap += OBJ_WIDTH
+        yOnMap += OBJ_WIDTH
+
+    elif shipStatus == 4:
+        yTarget += OBJ_WIDTH*3
+        yOnMap += OBJ_WIDTH
+
+    elif shipStatus == 3:
+        xTarget -= OBJ_WIDTH*3
+        yTarget -= OBJ_WIDTH*3
+
+        xOnMap -= OBJ_WIDTH
+        yOnMap -= OBJ_WIDTH
+
+    print(shipStatus)
+    print("fire at: ", ship.rect.center, (xTarget, yTarget), (xOnMap, yOnMap))
+
+    global clock, chayGame
+    while xOnMap != xTarget or yOnMap != yTarget:
+
+        xWidth = int((xOnMap - 35)/OBJ_WIDTH)
+        yWidth = int((yOnMap - 35)/OBJ_WIDTH)
+
+        if yWidth < 11 and xWidth < 11:
+            map[yWidth][xWidth] = bulletIcon
+
+        print(f'{xOnMap = }, {yOnMap = }')
+
+        clock.tick(FPS)
+        events = pygame.event.get()
+        for event in events:
+            if event.type == pygame.QUIT:
+                chayGame = False
+            if event.type == bonusReduce:
+                global bonusTurn_score
+                if bonusTurn_score > 0:
+                    bonusTurn_score -= 10
+
+        draw_window(laser=(xOnMap, yOnMap))
+
+        if xOnMap != xTarget:
+            if xOnMap < xTarget:
+                xOnMap += 1
             else:
-                rotate = -135
-        elif yOnMap < ship.rect.centery:
-            y = -1
-            if rotate == 0:
-                rotate = 0
-            elif rotate == 90:
-                rotate = 45
+                xOnMap -= 1
+        if yOnMap != yTarget:
+            if yOnMap < yTarget:
+                yOnMap += 1
             else:
-                rotate = -45
-    else:
-        x = xOnMap - ship.rect.x
-        y = yOnMap - ship.rect.y
-
-    ship.rotate(rotate)
-    shipGroup.update((int(ship.rect.centerx) + x, int(ship.rect.centery) + y))
-
-    return True
+                yOnMap -= 1
 
 
 def bulletMove(x, y):
@@ -669,6 +721,7 @@ def bulletMove(x, y):
         print("ban vien dan thu:", i, " tai: ",
               bullet1X, bullet1Y, bullet2X, bullet2Y)
         updateMap()
+
         endTime = pygame.time.get_ticks() + 1000
         while pygame.time.get_ticks() < endTime:
             gameCore()
@@ -729,6 +782,8 @@ def enemyMove(posX, posY, x, y):
             else:
                 visited[posX][posY] = False
                 visitedNum -= 1
+        elif map[posX + x][posY + y] == monsterIcon:
+            map[posX][posY] = waterIcon
         else:
             map[posX][posY] = waterIcon
             map[posX + x][posY + y] = deathIcon
@@ -852,7 +907,9 @@ def endSreen(events):
 
         message = "Your score " + \
             str(display_score)
-        write(message, "white", (460, 450), 35)
+        write(message, "#f8f239", (460, 450), 35)
+        message = "Right arrow for level " + str(level+1)
+        write(message, "#f8f239", (450, 490))
         print(message)
 
     else:
@@ -860,15 +917,14 @@ def endSreen(events):
         WIN.blit(endscreen, (0, 0))
         pygame.time.set_timer(bonusReduce, 0)
 
-        write("LMAO you lost", "white", (450, 450))
+        write("Oh no! You lost", "white", (450, 450))
         write("Better luck next time", "white", (450, 480))
         write("Space to retry", "white", (450, 540))
-        write("Arrow left/right to go to another level", "white", (450, 570))
         print("Game over")
 
     for event in events:
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_RIGHT:
+            if event.key == pygame.K_RIGHT and win:
                 screen = 1
                 game_restart = True
                 level += 1
@@ -927,10 +983,12 @@ def playScreen(events):
     if CheckWinCondition() == 1:
         win = True
         screen = 2
+        pygame.time.delay(1000)
         return
     elif CheckWinCondition() == -1:
         win = False
         screen = 2
+        pygame.time.delay(1000)
         return
 
     for event in events:
@@ -1001,7 +1059,7 @@ clock = pygame.time.Clock()
 chayGame = True
 
 
-def gameCore():
+def gameCore(laser=(-1, -1)):
 
     global clock, chayGame
 
@@ -1017,7 +1075,7 @@ def gameCore():
             if bonusTurn_score > 0:
                 bonusTurn_score -= 10
 
-    draw_window()
+    draw_window(laser)
 
 
 def main():
