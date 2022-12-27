@@ -924,8 +924,14 @@ def endSreen(events):
 
     for event in events:
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_RIGHT and win:
+            if event.key == pygame.K_RIGHT and win and level < 9:
                 screen = 1
+                game_restart = True
+                level += 1
+                imgAlpha = 0
+
+            if event.key == pygame.K_RIGHT and win and level >= 9:
+                screen = 3
                 game_restart = True
                 level += 1
                 imgAlpha = 0
@@ -1013,6 +1019,7 @@ def playScreen(events):
 
         monsterTurn()
         hasMoved = False
+        draw_window()
 
 
 # Screen dau tien luon la screen start
