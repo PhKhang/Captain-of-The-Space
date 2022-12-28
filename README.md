@@ -30,6 +30,8 @@ Last edit + 10hrs: Player can now turn to the destination they want to go
 ![image](https://user-images.githubusercontent.com/84757707/209555741-5c1da607-dff0-4119-b8fe-edc2ba3301c0.png)
 
 
+28/12: Presentation day
+![image](https://user-images.githubusercontent.com/84757707/209775802-953455ed-1c2f-4d1f-bcdc-1a57d3076d65.png)
 
 
 
