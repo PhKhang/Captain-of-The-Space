@@ -3,35 +3,21 @@ import random
 import numpy
 from copy import deepcopy
 import pygame
-from os import system
-import os
 
 MAX = 100
 mapSize = 11
 
-# CONST for the pygame
+# CONST for pygame
 OBJ_WIDTH, OBJ_HEIGHT = 50, 50
 WIN = pygame.display.set_mode((900, 600))
 FPS = 60
 
-RED = (255, 0,  0)
-GREEN = (0, 255, 0)
-BLUE = (0, 0, 255)
-CHOCO = (210, 105, 30)
-PINK = (255, 192, 203)
-
-pygame.display.set_caption("The pirate of The Seven Seas")
+pygame.display.set_caption("Captain of The Space")
 
 pygame.font.init()
 pygame.mixer.init()
 
 
-img1 = pygame.transform.smoothscale(pygame.image.load(
-    os.path.join("pikachuOnDeskSqr.png")), (OBJ_HEIGHT, OBJ_HEIGHT))  # Hinh anh va thu nho thanh 80x80px
-bullet = pygame.transform.smoothscale(pygame.image.load(
-    "images/laser/laserRed01.png"), (9, 54))  # Hinh anh va thu nho thanh 80x80px
-obstacle = pygame.transform.scale(pygame.image.load(
-    "images/obstacle/neutron.gif"), (92, 92))
 death = pygame.transform.smoothscale(pygame.image.load(
     "images/laser/laserRed11.png"), (50, 50))
 
@@ -205,7 +191,8 @@ mapList = [
 ]
 
 
-map = [['0']*MAX for i in range(0, MAX)]
+map = [['0']]
+
 visited = [['0']*MAX for i in range(0, MAX)]
 visitedNum = 0
 
@@ -242,6 +229,7 @@ class Bg(pygame.sprite.Sprite):
         self.image = self.sprites[int(self.index)]
 
 
+# Xoay hinh ma van giu vi tri chinh giua nhu truoc
 def rot_center(image, angle, x, y):
 
     rotated_image = pygame.transform.rotate(image, angle)
@@ -399,7 +387,6 @@ def draw_window(laserPos=(-1, -1)):
 
             # Ve enemy
             if (map[x][y] == enemyIcon):
-                # pygame.draw.rect(WIN, RED, rects[x][y])  # To DO
                 enemyGroup.update(rects[x][y].center)
                 enemyGroup.draw(WIN)
 
@@ -411,7 +398,6 @@ def draw_window(laserPos=(-1, -1)):
 
             # Ve votex
             if (map[x][y] == portalIcon):
-                # pygame.draw.rect(WIN, PINK, rects[x][y])  # To HONG
                 vot.update(
                     rects[x][y].centerx, rects[x][y].centery)
                 movingCelesGroup.draw(WIN)
@@ -427,9 +413,6 @@ def draw_window(laserPos=(-1, -1)):
 
             # Ve dan
             if (map[x][y] == bulletIcon):
-                bullet_rect = bullet.get_rect(center=rects[x][y].center)
-                # WIN.blit(bullet, bullet_rect)
-
                 if shipPosX < x and shipPosY < y:
                     laser.rotate(-135)
                 if shipPosX < x and shipPosY > y:
@@ -439,12 +422,12 @@ def draw_window(laserPos=(-1, -1)):
                 if shipPosY == y:
                     laser.rotate(0)
 
-                laserGroup.update(bullet_rect.center)
+                laserGroup.update(rects[x][y].center)
                 laserGroup.draw(WIN)
 
             # To len vien DO o co chuot hover
             if (rects[y][x].collidepoint(pygame.mouse.get_pos())):
-                pygame.draw.rect(WIN, RED, rects[y][x], 4)
+                pygame.draw.rect(WIN, "red", rects[y][x], 4)
 
             dem += 1
 
@@ -462,6 +445,7 @@ def draw_window(laserPos=(-1, -1)):
     pygame.display.update()
 
 
+# Hien thi map tren CLI
 def updateMap():
     for i in range(0, mapSize):
         for j in range(0, mapSize):
@@ -469,12 +453,7 @@ def updateMap():
         print()
 
 
-def initMap(ch):
-    for i in range(0, mapSize):
-        for j in range(0, mapSize):
-            map[i][j] = ch
-
-
+# Check xem co di chuyen ra ngoai map khong
 def isInMap(x, y):
     return (0 <= x < mapSize and 0 <= y < mapSize)
 
@@ -492,13 +471,9 @@ def CheckWinCondition():
     return 1
 
 
+# Lay input tu nguoi choi
 def getKeyBoardInput(events):
     x = y = 0
-
-    """ print("Your joystick :")
-    print("7 8 9")  # upper left  | up          | upper right
-    print("4 5 6")  # left        | fire cannon | right
-    print("1 2 3")  # bottom left | bottom      | bottom right """
 
     global shipStatus
 
@@ -560,6 +535,7 @@ def getKeyBoardInput(events):
     return x, y
 
 
+# Tinh huong di cua nguoi choi
 def playerTurn(events):
     x = y = 0
     x, y = getKeyBoardInput(events)
@@ -604,6 +580,7 @@ def playerTurn(events):
     return 1
 
 
+# Khoi dong ban dan
 def fireCannon():
     x = y = 0
     global shipStatus
@@ -694,6 +671,7 @@ def bulletMoving():
                 yOnMap -= 1
 
 
+# Tinh huong di cua dan
 def bulletMove(x, y):
     temp = None
     global shipPosX, shipPosY, map
@@ -761,6 +739,7 @@ def bulletMove(x, y):
                 map[bullet2X][bullet2Y] = waterIcon
 
 
+# Tinh huong di chuyen cua Enemy
 def enemyTurn():
 
     x = y = None
@@ -796,6 +775,7 @@ def enemyTurn():
                         enemyMove(i, j, x, y)
 
 
+# Di chuyen tu vi tri (PosX, PosY) sang vi tri (PosX + x, PosY + y)
 def enemyMove(posX, posY, x, y):
     global visited, visitedNum, map
 
@@ -823,6 +803,7 @@ def enemyMove(posX, posY, x, y):
             visitedNum += 1
 
 
+# Tinh huong di chuyen cua Monster
 def monsterTurn():
     x = y = None
     global visitedNum, visited
@@ -850,6 +831,7 @@ def monsterTurn():
             visited[i][j] = True
 
 
+# Chay animation nguoi choi di chuyen
 def playerMoving():
 
     global ship, shipGroup
@@ -901,6 +883,7 @@ def playerMoving():
     return True
 
 
+# Cach chuyen opacity cua hinh co nen transparent
 def blit_alpha(target, source, location, opacity):
     x = location[0]
     y = location[1]
@@ -917,6 +900,7 @@ imgAlpha = 0
 randomEncouragment = 0
 
 
+# Man hinh thang / thua
 def endSreen(events):
 
     pygame.mixer.music.pause()
@@ -989,6 +973,7 @@ def endSreen(events):
 game_restart = True
 
 
+# Man hinh bat dau
 def startScreen(events):
     global screen
 
@@ -1008,17 +993,17 @@ def startScreen(events):
 level = 0
 
 
+# Man hinh choi
 def playScreen(events):
     global game_restart, map, shipPosX, shipPosY, shipStatus, hasMoved, randomEncouragment
     if game_restart:
+        # Dung het nhac 800 millisecond roi chuyen nhac
         pygame.mixer.stop()
         pygame.mixer.music.stop()
-
         pygame.mixer.music.unload()
-
         pygame.mixer.music.load("sound/Quok - Atariwave [Instrumental].wav")
-
         pygame.time.set_timer(startLoop, 800)
+
         game_restart = False
 
         randomEncouragment = random.randint(0, len(encouragement)-1)
@@ -1032,6 +1017,7 @@ def playScreen(events):
 
         bonusTurn_score = 400
         display_score = 0
+
         pygame.time.set_timer(bonusReduce, 1000)
 
         map = deepcopy(mapList[level])
@@ -1084,6 +1070,7 @@ def playScreen(events):
 infoPage = 0
 
 
+# Man hinh info cac thanh vien, credits, assets source
 def lastScreen(events):
     global screen, infoPage
 
@@ -1168,6 +1155,7 @@ clock = pygame.time.Clock()
 chayGame = True
 
 
+# Ham de game luon chay va nhan input khi dung chuong trinh
 def gameCore(laser=(-1, -1)):
 
     global clock, chayGame
