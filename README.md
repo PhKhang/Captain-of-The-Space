@@ -32,8 +32,7 @@ Last edit + 10hrs: Player can now turn to the destination they want to go
 
 28/12: Presentation day
 ![image](https://user-images.githubusercontent.com/84757707/209775802-953455ed-1c2f-4d1f-bcdc-1a57d3076d65.png)
-![image](https://user-images.githubusercontent.com/84757707/209813970-958b8041-42f0-42c4-a4da-52cbe7ab765d.png)
-![image](https://user-images.githubusercontent.com/84757707/209813978-b443c052-33c0-456e-a261-eda9f2187571.png)
+![image](https://user-images.githubusercontent.com/84757707/209813970-958b8041-42f0-42c4-a4da-52cbe7ab765d.png) ![image](https://user-images.githubusercontent.com/84757707/209813978-b443c052-33c0-456e-a261-eda9f2187571.png)
 
 
 
@@ -45,4 +44,4 @@ Last edit + 10hrs: Player can now turn to the destination they want to go
 ### Dependencies
 Run `pip install pygame`
 ### Run the game
-`python .\testing.py`
+`python .\captainOfTheSpace.py`
