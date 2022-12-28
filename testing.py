@@ -739,7 +739,7 @@ def bulletMove(x, y):
               bullet1X, bullet1Y, bullet2X, bullet2Y)
         updateMap()
 
-        endTime = pygame.time.get_ticks() + 1000
+        endTime = pygame.time.get_ticks() + 300
         while pygame.time.get_ticks() < endTime:
             gameCore()
 
@@ -1011,6 +1011,7 @@ level = 0
 def playScreen(events):
     global game_restart, map, shipPosX, shipPosY, shipStatus, hasMoved, randomEncouragment
     if game_restart:
+        pygame.mixer.stop()
         pygame.mixer.music.stop()
 
         pygame.mixer.music.unload()
