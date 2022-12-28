@@ -1,5 +1,5 @@
-# Pirate-of-The-7-Seas-Game
-A remake of a nostalgic game in Python (In progress)
+# Captain of The Space
+A remake of a nostalgic game in Python
 
 Our uni group project of making a game in Python. We decided to build the game Pirate of The 7 seas. The game's mechanic is simple enough to build it from scratch but challenging enough for us to use our knowledge about 2 or even 3 dimensional arrays, and more.
 This is an ongoing project so over time there will be screenshots to documents our development.
