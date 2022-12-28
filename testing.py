@@ -289,13 +289,13 @@ class Enemy(pygame.sprite.Sprite):
 
 
 class Stuff(pygame.sprite.Sprite):
-    def __init__(self, x, y):
+    def __init__(self, x, y, path="images/votex/"):
         super().__init__()
 
         self.sprites = []
 
         for i in range(0, 60):
-            path_name = "images/votex/" + str(i).zfill(2) + ".gif"
+            path_name = path + str(i).zfill(2) + ".gif"
             image = pygame.image.load(path_name)
             self.sprites.append(pygame.transform.scale(image, (86, 86)))
 
@@ -369,15 +369,19 @@ def draw_dashed_line(surf, color, start_pos, end_pos, width=1, dash_length=10):
 
 
 def draw_window(laserPos=(-1, -1)):
-    WIN.fill('#01051f')  # Lam DEN nguyen man hinh
+    WIN.fill('#01051f')  # To mau nguyen man hinh
 
     global movingBgGroup, movingCelesGroup, vot, ship
 
+    # Ve background
     movingBgGroup.draw(WIN)
 
+    # Chuyen frame cua bacground
     movingBgGroup.update()
 
+    # Chuyen frame cua votex va planet
     vot.animate()
+    planet.animate()
 
     if laserPos[0] != -1:
         laserGroup.update(laserPos)
@@ -392,34 +396,36 @@ def draw_window(laserPos=(-1, -1)):
     dem = 0
     for y in range(0, mapSize):
         for x in range(0, mapSize):
-            # pygame.draw.rect(WIN, "black", rects[y][x], 1)
 
-            # To o 1 Cuop bien
+            # Ve enemy
             if (map[x][y] == enemyIcon):
                 # pygame.draw.rect(WIN, RED, rects[x][y])  # To DO
                 enemyGroup.update(rects[x][y].center)
                 enemyGroup.draw(WIN)
 
-            # To o 3 Dao
+            # Ve planet
             if (map[x][y] == obstacleIcon):
-
-                toaDoDatHinh = (rects[x][y].x - 20,
-                                rects[x][y].y - 20)
-                WIN.blit(obstacle, toaDoDatHinh)
-
-            if (map[x][y] == portalIcon):
-                # pygame.draw.rect(WIN, PINK, rects[x][y])  # To HONG
-                movingCelesGroup.update(
+                planet.update(
                     rects[x][y].centerx, rects[x][y].centery)
                 movingCelesGroup.draw(WIN)
 
+            # Ve votex
+            if (map[x][y] == portalIcon):
+                # pygame.draw.rect(WIN, PINK, rects[x][y])  # To HONG
+                vot.update(
+                    rects[x][y].centerx, rects[x][y].centery)
+                movingCelesGroup.draw(WIN)
+
+            # Ve nhung noi bi tong nhau
             if (map[x][y] == deathIcon):
                 death_rect = death.get_rect(center=rects[x][y].center)
                 WIN.blit(death, death_rect)
 
+            # Ve monster
             if (map[x][y] == monsterIcon):
-                pygame.draw.rect(WIN, "cornflowerblue", rects[x][y])  # To NAU
+                pygame.draw.rect(WIN, "cornflowerblue", rects[x][y])
 
+            # Ve dan
             if (map[x][y] == bulletIcon):
                 bullet_rect = bullet.get_rect(center=rects[x][y].center)
                 # WIN.blit(bullet, bullet_rect)
@@ -436,16 +442,6 @@ def draw_window(laserPos=(-1, -1)):
                 laserGroup.update(bullet_rect.center)
                 laserGroup.draw(WIN)
 
-            # To DO roi them hinh o duoc chon
-            """ if ((x == shipPosX and y == shipPosY) and (map[x][y] != enemyIcon)):
-                toaDoDatHinh = (rects[x][y].x + (100-80)/4,
-                                rects[x][y].y + (100-80)/4)
-                pygame.draw.rect(WIN, RED, rects[x][y])
-                ship_rect = img1.get_rect(center=rects[x][y].center)
-                WIN.blit(img1, ship_rect)
-
-                shipGroup.update(rects[x][y].center) """
-
             # To len vien DO o co chuot hover
             if (rects[y][x].collidepoint(pygame.mouse.get_pos())):
                 pygame.draw.rect(WIN, RED, rects[y][x], 4)
@@ -453,11 +449,13 @@ def draw_window(laserPos=(-1, -1)):
             dem += 1
 
     shipGroup.draw(WIN)
+
     message = "LEVEL " + str(level)
     writeLeft(message, "white", (570, 50), size=40)
     message = "Bonus point: " + str(bonusTurn_score)
     writeLeft(message, "white", (570, 110))
 
+    # Ve instruction ben phai man hinh
     instruct = pygame.image.load("images/screen/instruct.png")
     WIN.blit(instruct, (560, 300))
 
@@ -1013,8 +1011,13 @@ level = 0
 def playScreen(events):
     global game_restart, map, shipPosX, shipPosY, shipStatus, hasMoved, randomEncouragment
     if game_restart:
-        pygame.mixer.pause()
-        pygame.time.set_timer(startLoop, 300)
+        pygame.mixer.music.stop()
+
+        pygame.mixer.music.unload()
+
+        pygame.mixer.music.load("sound/Quok - Atariwave [Instrumental].wav")
+
+        pygame.time.set_timer(startLoop, 800)
         game_restart = False
 
         randomEncouragment = random.randint(0, len(encouragement)-1)
@@ -1130,7 +1133,9 @@ movingBgGroup.add(bg)
 
 movingCelesGroup = pygame.sprite.Group()
 vot = Stuff(0, 0)
+planet = Stuff(0, 0, "images/planet/")
 movingCelesGroup.add(vot)
+movingCelesGroup.add(planet)
 
 
 shipGroup = pygame.sprite.Group()
