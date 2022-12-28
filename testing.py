@@ -23,6 +23,7 @@ PINK = (255, 192, 203)
 pygame.display.set_caption("The pirate of The Seven Seas")
 
 pygame.font.init()
+pygame.mixer.init()
 
 
 img1 = pygame.transform.smoothscale(pygame.image.load(
@@ -33,6 +34,11 @@ obstacle = pygame.transform.scale(pygame.image.load(
     "images/obstacle/neutron.gif"), (92, 92))
 death = pygame.transform.smoothscale(pygame.image.load(
     "images/laser/laserRed11.png"), (50, 50))
+
+music = pygame.mixer.music.load("sound/loopTrueFinal.wav")
+intro = pygame.mixer.Sound("sound/Openingsound.wav")
+lose = pygame.mixer.Sound("sound/LosingSound.wav")
+gun = pygame.mixer.Sound("sound/LaserGun.wav")
 
 # Tao mang that bu, moi phan tu la MOT VUNG HINH VUONG de tu do to mau, in hinh,... len
 rects = [[0]*50 for i in range(0, 50)]  # Tao mang trong
@@ -203,7 +209,7 @@ visited = [['0']*MAX for i in range(0, MAX)]
 visitedNum = 0
 
 encouragement = ["Wow, you actually accomplished something for once.",
-                 "Gamer Moment", "Great job, now you can beat my cat", ""]
+                 "Gamer Moment", "Goodjob!!! Now you can defeat my cat", "Congratulations, newbie", "Time well spent, am I right, dawg", "Umm, congrats I guess?"]
 
 
 class Bg(pygame.sprite.Sprite):
@@ -311,12 +317,32 @@ class Stuff(pygame.sprite.Sprite):
         self.rect.center = [x, y]
 
 
+def blit_text(surface, text, pos=(900/2, 600/2), font="fonts/PressStart2P-Regular.ttf", color=pygame.Color('black')):
+    # 2D array where each row is a list of words.
+    words = [word.split(' ') for word in text.splitlines()]
+    space = 20  # The width of a space.
+    max_width = 400
+    max_height = 500
+    x, y = pos
+    for line in words:
+        for word in line:
+            word_surface = pygame.font.Font(font, 20).render(word, 0, color)
+            word_width, word_height = word_surface.get_size()
+            if x + word_width >= max_width:
+                x = pos[0]  # Reset the x.
+                y += word_height  # Start on new row.
+            surface.blit(word_surface, (x, y))
+            x += word_width + space
+        x = pos[0]  # Reset the x.
+        y += word_height  # Start on new row.
+
+
 def write(content, color="black", pos=(900/2, 600/2), size=20, font="fonts/PressStart2P-Regular.ttf", background=0):
     text = pygame.font.Font(font, size)
     if background == 0:
         text_sur = text.render(content, False, color)
     else:
-        text_sur = text.render(content, False, color, "#01051f")
+        text_sur = text.render(content, False, color, "white")
 
     text_rec = text_sur.get_rect(center=pos)
     WIN.blit(text_sur, text_rec)
@@ -361,7 +387,7 @@ def draw_dashed_line(surf, color, start_pos, end_pos, width=1, dash_length=10):
         pygame.draw.line(surf, color, start, end, width)
 
 
-def draw_window(laser=(-1, -1)):
+def draw_window(laserPos=(-1, -1)):
     WIN.fill('#01051f')  # Lam DEN nguyen man hinh
 
     global movingBgGroup, movingCelesGroup, vot, ship
@@ -372,8 +398,8 @@ def draw_window(laser=(-1, -1)):
 
     vot.animate()
 
-    if laser[0] != -1:
-        laserGroup.update(laser)
+    if laserPos[0] != -1:
+        laserGroup.update(laserPos)
         laserGroup.draw(WIN)
 
     for i in range(0, mapSize + 1):
@@ -416,6 +442,15 @@ def draw_window(laser=(-1, -1)):
             if (map[x][y] == bulletIcon):
                 bullet_rect = bullet.get_rect(center=rects[x][y].center)
                 # WIN.blit(bullet, bullet_rect)
+
+                if shipPosX < x and shipPosY < y:
+                    laser.rotate(-135)
+                if shipPosX < x and shipPosY > y:
+                    laser.rotate(-45)
+                if shipPosX == x:
+                    laser.rotate(90)
+                if shipPosY == y:
+                    laser.rotate(0)
 
                 laserGroup.update(bullet_rect.center)
                 laserGroup.draw(WIN)
@@ -516,7 +551,8 @@ def getKeyBoardInput(events):
 
             elif event.key == pygame.K_5 or event.key == pygame.K_KP5:
                 x = 100
-                print("ban vua chon ", 'none')
+                print("ban vua chon ", 'Ban!')
+                gun.play()
 
             elif event.key == pygame.K_6 or event.key == pygame.K_KP6 or event.key == pygame.K_RIGHT:
                 x = 0
@@ -665,7 +701,7 @@ def bulletMoving():
                 if bonusTurn_score > 0:
                     bonusTurn_score -= 10
 
-        draw_window(laser=(xOnMap, yOnMap))
+        draw_window(laserPos=(xOnMap, yOnMap))
 
         if xOnMap != xTarget:
             if xOnMap < xTarget:
@@ -693,24 +729,26 @@ def bulletMove(x, y):
     for i in range(0, 3):
 
         if bullet1Stop == False and isInMap(bullet1X + x, bullet1Y + y):
+            if (map[bullet1X][bullet1Y] != shipIcon and map[bullet1X][bullet1Y] != deathIcon):
+                map[bullet1X][bullet1Y] = waterIcon
             if (map[bullet1X + x][bullet1Y + y] != waterIcon):
-                if (map[bullet1X + x][bullet1Y + y] == monsterIcon or map[bullet1X + x][bullet1Y + y] == obstacleIcon):
+                if (map[bullet1X + x][bullet1Y + y] == monsterIcon or map[bullet1X + x][bullet1Y + y] == portalIcon or map[bullet1X + x][bullet1Y + y] == obstacleIcon):
                     bullet1Stop = True
                 else:
-                    map[bullet1X + x][bullet1Y + y] = obstacleIcon if (
-                        map[bullet1X - x][bullet1Y - y] == obstacleIcon) else deathIcon
+                    map[bullet1X + x][bullet1Y + y] = deathIcon
             else:
                 map[bullet1X + x][bullet1Y + y] = bulletIcon
             bullet1X += x
             bullet1Y += y
 
         if (bullet2Stop == False and isInMap(bullet2X - x, bullet2Y - y)):
+            if (map[bullet2X][bullet2Y] != shipIcon and map[bullet2X][bullet2Y] != deathIcon):
+                map[bullet2X][bullet2Y] = waterIcon
             if (map[bullet2X - x][bullet2Y - y] != waterIcon):
-                if (map[bullet2X - x][bullet2Y - y] == monsterIcon or map[bullet2X - x][bullet2Y - y] == obstacleIcon):
+                if (map[bullet2X - x][bullet2Y - y] == monsterIcon or map[bullet2X - x][bullet2Y - y] == portalIcon or map[bullet2X - x][bullet2Y - y] == obstacleIcon):
                     bullet2Stop = True
                 else:
-                    map[bullet2X - x][bullet2Y - y] = obstacleIcon if (
-                        map[bullet2X - x][bullet2Y - y] == obstacleIcon) else deathIcon
+                    map[bullet2X - x][bullet2Y - y] = deathIcon
             else:
                 map[bullet2X - x][bullet2Y - y] = bulletIcon
             bullet2X -= x
@@ -728,9 +766,20 @@ def bulletMove(x, y):
 
         # clear the last bullet
         if (map[bullet1X][bullet1Y] != shipIcon and map[bullet1X][bullet1Y] != deathIcon):
-            map[bullet1X][bullet1Y] = obstacleIcon if map[bullet1X][bullet1Y] == obstacleIcon else waterIcon
+            if map[bullet1X][bullet1Y] == portalIcon:
+                map[bullet1X][bullet1Y] = portalIcon
+            elif map[bullet1X][bullet1Y] == obstacleIcon:
+                map[bullet1X][bullet1Y] = obstacleIcon
+            else:
+                map[bullet1X][bullet1Y] = waterIcon
+
         if (map[bullet2X][bullet2Y] != shipIcon and map[bullet2X][bullet2Y] != deathIcon):
-            map[bullet2X][bullet2Y] = obstacleIcon if map[bullet2X][bullet2Y] == obstacleIcon else waterIcon
+            if map[bullet2X][bullet2Y] == portalIcon:
+                map[bullet2X][bullet2Y] = portalIcon
+            elif map[bullet2X][bullet2Y] == obstacleIcon:
+                map[bullet2X][bullet2Y] = obstacleIcon
+            else:
+                map[bullet2X][bullet2Y] = waterIcon
 
 
 def enemyTurn():
@@ -885,7 +934,13 @@ def blit_alpha(target, source, location, opacity):
 imgAlpha = 0
 
 
+randomEncouragment = 0
+
+
 def endSreen(events):
+
+    pygame.mixer.music.pause()
+
     global win, screen, game_restart, display_score, imgAlpha, level
 
     if display_score + 5 < lvl_score + bonusTurn_score:
@@ -897,11 +952,17 @@ def endSreen(events):
         endscreen = pygame.image.load("images/screen/endscreenWin.png")
         WIN.blit(endscreen, (0, 0))
 
-        """ if display_score >= 400:
+        if display_score >= 400:
             グラ = pygame.image.load("images/.config/グラ.png")
             if imgAlpha < 225:
                 imgAlpha += 10
-            blit_alpha(WIN, グラ, (0, 150), imgAlpha) """
+            blit_alpha(WIN, グラ, (0, 150), imgAlpha)
+
+            write(encouragement[randomEncouragment],
+                  color="black", size=25, background=1, font="fonts/Retro Gaming.ttf")
+
+            """ blit_text(WIN, encouragement[randomEncouragment])
+            pygame.display.update() """
 
         pygame.time.set_timer(bonusReduce, 0)
 
@@ -913,6 +974,8 @@ def endSreen(events):
         print(message)
 
     else:
+        if display_score < 6:
+            lose.play()
         endscreen = pygame.image.load("images/screen/endscreen.png")
         WIN.blit(endscreen, (0, 0))
         pygame.time.set_timer(bonusReduce, 0)
@@ -924,14 +987,14 @@ def endSreen(events):
 
     for event in events:
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_RIGHT and win and level < 9:
-                screen = 1
+            if event.key == pygame.K_RIGHT and win and level >= 9:
+                screen = 3
                 game_restart = True
                 level += 1
                 imgAlpha = 0
 
-            if event.key == pygame.K_RIGHT and win and level >= 9:
-                screen = 3
+            elif event.key == pygame.K_RIGHT and win and level < 9:
+                screen = 1
                 game_restart = True
                 level += 1
                 imgAlpha = 0
@@ -960,9 +1023,13 @@ level = 0
 
 
 def playScreen(events):
-    global game_restart, map, shipPosX, shipPosY, shipStatus, hasMoved
+    global game_restart, map, shipPosX, shipPosY, shipStatus, hasMoved, randomEncouragment
     if game_restart:
+        pygame.mixer.pause()
+        pygame.time.set_timer(startLoop, 300)
         game_restart = False
+
+        randomEncouragment = random.randint(0, len(encouragement)-1)
 
         ship.rotate(0)
         ship.update((285, 285))
@@ -1060,6 +1127,7 @@ total_score = 0
 display_score = 0
 
 bonusReduce = pygame.USEREVENT + 1
+startLoop = pygame.USEREVENT + 2
 
 
 clock = pygame.time.Clock()
@@ -1090,6 +1158,7 @@ def main():
     global hasMoved, clock, chayGame
 
     hasMoved = False
+
     while chayGame:
         clock.tick(FPS)
 
@@ -1102,6 +1171,10 @@ def main():
                 global bonusTurn_score
                 if bonusTurn_score > 0:
                     bonusTurn_score -= 10
+
+            if event.type == startLoop:
+                pygame.time.set_timer(startLoop, 0)
+                pygame.mixer.music.play(-1)
 
         if screen == 1:
             playScreen(events)
@@ -1116,4 +1189,6 @@ def main():
 
 
 if __name__ == "__main__":
+    intro.play()
+    pygame.time.set_timer(startLoop, 5000)
     main()
