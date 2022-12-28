@@ -38,6 +38,7 @@ death = pygame.transform.smoothscale(pygame.image.load(
 music = pygame.mixer.music.load("sound/loopTrueFinal.wav")
 intro = pygame.mixer.Sound("sound/Openingsound.wav")
 lose = pygame.mixer.Sound("sound/LosingSound.wav")
+wins = pygame.mixer.Sound("sound/WinSound.wav")
 gun = pygame.mixer.Sound("sound/LaserGun.wav")
 
 # Tao mang that bu, moi phan tu la MOT VUNG HINH VUONG de tu do to mau, in hinh,... len
@@ -315,26 +316,6 @@ class Stuff(pygame.sprite.Sprite):
 
     def update(self, x, y):
         self.rect.center = [x, y]
-
-
-def blit_text(surface, text, pos=(900/2, 600/2), font="fonts/PressStart2P-Regular.ttf", color=pygame.Color('black')):
-    # 2D array where each row is a list of words.
-    words = [word.split(' ') for word in text.splitlines()]
-    space = 20  # The width of a space.
-    max_width = 400
-    max_height = 500
-    x, y = pos
-    for line in words:
-        for word in line:
-            word_surface = pygame.font.Font(font, 20).render(word, 0, color)
-            word_width, word_height = word_surface.get_size()
-            if x + word_width >= max_width:
-                x = pos[0]  # Reset the x.
-                y += word_height  # Start on new row.
-            surface.blit(word_surface, (x, y))
-            x += word_width + space
-        x = pos[0]  # Reset the x.
-        y += word_height  # Start on new row.
 
 
 def write(content, color="black", pos=(900/2, 600/2), size=20, font="fonts/PressStart2P-Regular.ttf", background=0):
@@ -912,6 +893,7 @@ def playerMoving():
             else:
                 rotate = -45
     else:
+
         x = xOnMap - ship.rect.x
         y = yOnMap - ship.rect.y
 
@@ -949,6 +931,9 @@ def endSreen(events):
         display_score = lvl_score + bonusTurn_score
 
     if win:
+        if display_score < 6:
+            wins.play()
+
         endscreen = pygame.image.load("images/screen/endscreenWin.png")
         WIN.blit(endscreen, (0, 0))
 
@@ -960,9 +945,6 @@ def endSreen(events):
 
             write(encouragement[randomEncouragment],
                   color="black", size=25, background=1, font="fonts/Retro Gaming.ttf")
-
-            """ blit_text(WIN, encouragement[randomEncouragment])
-            pygame.display.update() """
 
         pygame.time.set_timer(bonusReduce, 0)
 
@@ -976,6 +958,7 @@ def endSreen(events):
     else:
         if display_score < 6:
             lose.play()
+
         endscreen = pygame.image.load("images/screen/endscreen.png")
         WIN.blit(endscreen, (0, 0))
         pygame.time.set_timer(bonusReduce, 0)
@@ -1013,10 +996,15 @@ def startScreen(events):
 
     winscreen = pygame.image.load("images/screen/startscreen.png")
     WIN.blit(winscreen, (0, 0))
-    write("Press any key to start the game!", "white", (900/2, 400))
+    write("Press <Space> to start the game!", "white", (900/2, 400))
+    write("<I> for more Info", "white", (900/2, 580))
     for event in events:
         if event.type == pygame.KEYDOWN:
-            screen = 1
+            if event.key == pygame.K_SPACE:
+                screen = 1
+
+            elif event.key == pygame.K_i:
+                screen = 4
 
 
 level = 0
@@ -1087,6 +1075,46 @@ def playScreen(events):
         monsterTurn()
         hasMoved = False
         draw_window()
+
+
+infoPage = 0
+
+
+def lastScreen(events):
+    global screen, infoPage
+
+    winscreen = pygame.image.load("images/screen/startscreen.png")
+    WIN.blit(winscreen, (0, 0))
+    if infoPage == 0:
+        write("Members:", "white", (900/2, 300))
+        write("Nguyen Thien Bao, 22127032", "white", (900/2, 340))
+        write("Nguyen Quang Huy, 22127157", "white", (900/2, 380))
+        write("Nguyen Gia Phuc, 22127331", "white", (900/2, 420))
+        write("Le Tri Man, 22127258", "white", (900/2, 460))
+        write("Nguyen Quoc Tin, 22127416", "white", (900/2, 500))
+        write("Tran Nguyen Phuc Khang, 22127182", "white", (900/2, 540))
+        write("<Space> to get back, <Right> for next", "white", (900/2, 580))
+    elif infoPage == 1:
+        write("Music:", "white", (900/2, 300))
+        write("Atariwave - Quok", "white", (900/2, 340))
+        write(
+            "Super Mario World Game Over LoFi - HephestosMusic", "white", (900/2, 380), size=18)
+        write("first date (chiptune) - frad and kuribo98", "white", (900/2, 420))
+        write("Game assets:", "white", (900/2, 460))
+        write("kenney.nl", "white", (900/2, 500))
+        write("itch.io", "white", (900/2, 540))
+        write("<Space> to get back, <Right> for next", "white", (900/2, 580))
+
+    for event in events:
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                screen = 3
+            if event.key == pygame.K_RIGHT:
+                if infoPage < 1:
+                    infoPage += 1
+            if event.key == pygame.K_LEFT:
+                if infoPage > 0:
+                    infoPage -= 1
 
 
 # Screen dau tien luon la screen start
@@ -1182,6 +1210,8 @@ def main():
             endSreen(events)
         elif screen == 3:
             startScreen(events)
+        elif screen == 4:
+            lastScreen(events)
 
         pygame.display.update()
 
